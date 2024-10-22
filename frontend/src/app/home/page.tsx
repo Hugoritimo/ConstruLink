@@ -95,7 +95,9 @@ const HomePage = () => {
       <footer className="w-full max-w-5xl mt-12 text-center text-[#666666]">
         <p>
           &copy; 2024 Projeta. <br />
-          Todos os direitos reservados.
+          Todos os direitos reservados. <br />
+          Desenvolvido e Projetado por NITEP - Núcleo de Inovação e Tecnologia
+          Projeta
         </p>
       </footer>
     </div>

@@ -1,14 +1,37 @@
- to one-to-many.
-  -->  prisma\schema.prisma:55
-   | 
-54 |   reportId    Int                                     // ID do relatório associado
-55 |   report      Report   @relation(fields: [reportId], references: [id]) // Relacionamento com Relatório
-56 |   createdAt   DateTime @default(now())               // Data de criação do PDF
-   | 
-error: Error validating field `user` in model `Session`: The relation field `user` on model `Session` is missing an opposite relation field on the model `User`. Either run `prisma format` or add it manually.
-  -->  prisma\schema.prisma:64
-   | 
-63 |   userId      Int                                  // ID do usuário associado
-64 |   user        User     @relation(fields: [userId], references: [id]) // Relacionamento com Usuário
-65 |   expiresAt   DateTime                             // Data de expiração do token
-   | 
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       Int       @id @default(autoincrement())
+  email    String    @unique
+  password String
+  sessions Session[]
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id      Int    @id @default(autoincrement())
+  title   String
+  content String
+  pdfs    PDF[]
+}
+
+model PDF {
+  id        Int      @id @default(autoincrement())
+  reportId  Int
+  report    Report   @relation(fields: [reportId], references: [id])
+  createdAt DateTime @default(now())
+}
