@@ -11,7 +11,7 @@ const HomePage = () => {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const correctPassword = "teste"; // Defina a senha correta aqui
+  const correctPassword = "!PCS-43590"; // Defina a senha correta aqui
 
   // Função para verificar a senha
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -96,7 +96,7 @@ const HomePage = () => {
         <p>
           &copy; 2024 Projeta. <br />
           Todos os direitos reservados. <br />
-          Desenvolvido e Projetado por NITEP - Núcleo de Inovação e Tecnologia
+          Projetado e Desenvolvido por NITEP - Núcleo de Inovação e Tecnologia
           Projeta
         </p>
       </footer>
