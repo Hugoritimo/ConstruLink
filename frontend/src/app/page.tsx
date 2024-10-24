@@ -11,7 +11,14 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
 import Link from "next/link";
-import { setToken } from "@/lib/auth"; // Certifique-se de que a função está corretamente exportada
+
+// Usuários de teste
+const testUsers = [
+  { username: "victor.sousa", password: "!Projeta4359" },
+  { username: "lucas.costa", password: "!Projeta4359" },
+  { username: "befranio.junior", password: "!Projeta4359" },
+  { username: "carlos.victor", password: "!Projeta4359" },
+];
 
 export default function LoginPage() {
   const [username, setUsername] = useState<string>("");
@@ -30,35 +37,26 @@ export default function LoginPage() {
       return;
     }
 
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+    // Verificação dos usuários de teste
+    const validUser = testUsers.find(
+      (user) => user.username === username && user.password === password
+    );
 
-      if (response.ok) {
-        const result = await response.json();
-        const token = result.token;
+    if (validUser) {
+      toast.success("Login bem-sucedido!");
 
-        setToken(token, rememberMe);
-        toast.success("Login bem-sucedido!");
+      // Simular armazenamento de token (apenas para teste)
+      localStorage.setItem("authToken", "fakeToken");
 
-        setTimeout(() => {
-          router.push("/home");
-        }, 1000);
-      } else {
-        const result = await response.json();
-        const errorMessage =
-          result.message || "Erro ao fazer login. Tente novamente.";
-        toast.error(errorMessage);
-      }
-    } catch (error) {
-      console.error("Erro na requisição de login:", error);
-      toast.error("Erro ao tentar fazer login, tente novamente.");
-    } finally {
-      setIsLoading(false);
+      // Redirecionar para a página home após 1 segundo
+      setTimeout(() => {
+        router.push("/home");
+      }, 1000);
+    } else {
+      toast.error("Nome de usuário ou senha incorretos.");
     }
+
+    setIsLoading(false);
   };
 
   return (
