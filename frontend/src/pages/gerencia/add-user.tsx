@@ -11,6 +11,13 @@ const AddUser = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
+  // Função para salvar o novo usuário no localStorage
+  const saveUserToLocalStorage = (username: string, password: string) => {
+    const existingUsers = JSON.parse(localStorage.getItem("testUsers") || "[]");
+    const updatedUsers = [...existingUsers, { username, password }];
+    localStorage.setItem("testUsers", JSON.stringify(updatedUsers));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -24,6 +31,8 @@ const AddUser = () => {
       );
 
       if (response.status === 201) {
+        // Se o usuário for adicionado no backend com sucesso, também o adicionamos no localStorage
+        saveUserToLocalStorage(username, password);
         setSuccessMessage("Usuário adicionado com sucesso!");
         setUsername("");
         setPassword("");

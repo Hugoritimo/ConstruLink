@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,13 @@ import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
 import Link from "next/link";
 
-// Usuários de teste
-const testUsers = [
-  { username: "victor.sousa", password: "!Projeta4359" },
-  { username: "lucas.costa", password: "!Projeta4359" },
+// Usuários padrão para login
+const defaultUsers = [
   { username: "befranio.junior", password: "!Projeta4359" },
+  { username: "lucas.costa", password: "!Projeta4350" },
   { username: "carlos.victor", password: "!Projeta4359" },
+  { username: "Admin", password: "teste" },
+  { username: "victor.sousa", password: "!Projeta4359" },
 ];
 
 export default function LoginPage() {
@@ -26,6 +27,15 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+  const [testUsers, setTestUsers] = useState<
+    { username: string; password: string }[]
+  >([]);
+
+  // Carregar usuários padrões e os do localStorage
+  useEffect(() => {
+    const storedUsers = JSON.parse(localStorage.getItem("testUsers") || "[]");
+    setTestUsers([...defaultUsers, ...storedUsers]); // Mescla os usuários padrões com os do localStorage
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +47,7 @@ export default function LoginPage() {
       return;
     }
 
-    // Verificação dos usuários de teste
+    // Verifica se o usuário está no localStorage ou é um dos padrões
     const validUser = testUsers.find(
       (user) => user.username === username && user.password === password
     );
@@ -45,10 +55,7 @@ export default function LoginPage() {
     if (validUser) {
       toast.success("Login bem-sucedido!");
 
-      // Simular armazenamento de token (apenas para teste)
-      localStorage.setItem("authToken", "fakeToken");
-
-      // Redirecionar para a página home após 1 segundo
+      // Simula o redirecionamento após o login
       setTimeout(() => {
         router.push("/home");
       }, 1000);
