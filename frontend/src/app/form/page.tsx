@@ -1,4 +1,3 @@
-// app/relatorio/page.tsx
 "use client";
 import React, { useState } from "react";
 import axios from "axios";
@@ -495,6 +494,10 @@ const RelatorioDiarioObras: React.FC = () => {
     }
   };
 
+  function handleChange(event: ChangeEvent<HTMLTextAreaElement>): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 to-blue-100 p-6">
       <motion.h1
@@ -512,9 +515,6 @@ const RelatorioDiarioObras: React.FC = () => {
         animate={{ opacity: 1 }}
         style={{ maxHeight: "80vh" }}
       >
-        {/* Seu formulário completo sem o campo "Produtividade" */}
-        {/* ... (mantenha todo o JSX do formulário, removendo a seção de Produtividade) ... */}
-
         {/* Campo de Observação para Assinatura */}
         <h2 className="text-xl font-bold mt-6 mb-2">
           Observação da Assinatura
