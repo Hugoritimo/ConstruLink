@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
 @Entity()
 export class File {
@@ -11,6 +11,6 @@ export class File {
     @Column()
     sharepointUrl: string;
 
-    @Column()
+    @CreateDateColumn()
     uploadDate: Date;
 }

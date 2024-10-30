@@ -5,6 +5,7 @@ import { File } from './file.entity';
 import { SPFI, spfi } from '@pnp/sp';
 import { ConfidentialClientApplication, ClientCredentialRequest } from "@azure/msal-node";
 import "@pnp/sp/files";
+import { FetchWithBearerToken } from '@pnp/nodejs';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -23,7 +24,7 @@ const cca = new ConfidentialClientApplication(msalConfig);
 // Função para obter o token de acesso
 async function getAccessToken(): Promise<string> {
     const clientCredentialRequest: ClientCredentialRequest = {
-        scopes: ["https://your-sharepoint-domain.sharepoint.com/.default"],
+        scopes: [`https://${process.env.SHAREPOINT_DOMAIN}.sharepoint.com/.default`],
     };
 
     const authResult = await cca.acquireTokenByClientCredential(clientCredentialRequest);
@@ -38,15 +39,8 @@ async function getAccessToken(): Promise<string> {
 async function getSPInstance(): Promise<SPFI> {
     const token = await getAccessToken();
 
-    const customFetch = (url: string, options: any = {}) => {
-        options.headers = {
-            ...options.headers,
-            "Authorization": `Bearer ${token}`,
-        };
-        return fetch(url, options);
-    };
-
-    return spfi().using({ fetchClientFactory: () => ({ fetch: customFetch as any }) });
+    // Configura o PnPJS para usar o token de acesso
+    return spfi().using(FetchWithBearerToken(token));
 }
 
 @Injectable()
@@ -61,7 +55,7 @@ export class EnvioService {
 
         // 1. Upload para o SharePoint
         const file = await sp.web
-            .getFolderByServerRelativePath('/sites/ConstrulinkRDO/Documentos')
+            .getFolderByServerRelativePath('/sites/ConstrulinkRDO/Documentos/RDOS ARQUIVADOS')
             .files.add(filename, fileBuffer, true);
 
         const fileUrl = file.data.ServerRelativeUrl;
