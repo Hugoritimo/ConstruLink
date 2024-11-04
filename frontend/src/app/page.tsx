@@ -12,7 +12,6 @@ import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
 import Link from "next/link";
 
-// Usuários padrão para login
 const defaultUsers = [
   { username: "befranio.junior", password: "!Projeta4359" },
   { username: "lucas.costa", password: "!Projeta4350" },
@@ -27,14 +26,13 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
-  const [testUsers, setTestUsers] = useState<
-    { username: string; password: string }[]
-  >([]);
+  const [testUsers, setTestUsers] = useState<{ username: string; password: string }[]>([]);
 
-  // Carregar usuários padrões e os do localStorage
   useEffect(() => {
-    const storedUsers = JSON.parse(localStorage.getItem("testUsers") || "[]");
-    setTestUsers([...defaultUsers, ...storedUsers]); // Mescla os usuários padrões com os do localStorage
+    if (typeof window !== "undefined") {
+      const storedUsers = JSON.parse(localStorage.getItem("testUsers") || "[]");
+      setTestUsers([...defaultUsers, ...storedUsers]);
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,15 +45,12 @@ export default function LoginPage() {
       return;
     }
 
-    // Verifica se o usuário está no localStorage ou é um dos padrões
     const validUser = testUsers.find(
       (user) => user.username === username && user.password === password
     );
 
     if (validUser) {
       toast.success("Login bem-sucedido!");
-
-      // Simula o redirecionamento após o login
       setTimeout(() => {
         router.push("/home");
       }, 1000);
