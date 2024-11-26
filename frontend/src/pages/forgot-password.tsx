@@ -64,14 +64,10 @@ const ForgotPasswordPage = () => {
               required
             />
           </div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              type="submit"
-              className="w-full bg-brand-primary hover:bg-brand-secondary text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition duration-300 dark:bg-brand-primary dark:hover:bg-brand-secondary"
-            >
-              Enviar E-mail de Recuperação
-            </Button>
-          </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          ></motion.div>
         </form>
       </motion.div>
     </div>

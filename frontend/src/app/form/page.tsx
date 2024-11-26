@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, ChangeEvent } from "react";
 import axios from "axios";
-import { Button } from "@/components/ui/button";
+import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -126,6 +126,7 @@ interface FormData {
   problemasEncontrados: string;
   acoesRequeridas: string;
   comunicacoes: string;
+  observacoesGerente: string;
 }
 
 const initialFormData: FormData = {
@@ -246,6 +247,7 @@ const initialFormData: FormData = {
   problemasEncontrados: "",
   acoesRequeridas: "",
   comunicacoes: "",
+  observacoesGerente: "",
 };
 
 const RelatorioDiarioObras: React.FC = () => {
@@ -651,7 +653,9 @@ const RelatorioDiarioObras: React.FC = () => {
               Assinatura do Responsável: ${formData.assinaturaResponsavel}
               <p>Observação: ${formData.observacaoAssinatura}</p>
             </div>
-            <div class="signature">Assinatura do Gerente: ${formData.assinaturaGerente}
+            <div class="signature">Assinatura do Gerente: ${
+              formData.assinaturaGerente
+            }
             <p>Observação: ${formData.observacoesGerente}</p></div>
           </div>
 
@@ -931,7 +935,6 @@ const RelatorioDiarioObras: React.FC = () => {
         >
           Adicionar Efetivo
         </Button>
-
 
         {/* Botão de Envio */}
         <div className="flex justify-center mt-6">
