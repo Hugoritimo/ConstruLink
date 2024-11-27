@@ -1,7 +1,7 @@
 "use client"; // Indica que este código será executado no lado do cliente.
 
 import React, { useState, useEffect } from "react"; // Importa React e hooks para gerenciamento de estado e efeitos colaterais.
-import { Button } from "@/components/ui/button"; // Importa o componente Button personalizado.
+import Button from "@/components/ui/button"; // Importa o componente Button personalizado.
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Importa componentes Card, CardContent, CardHeader e CardTitle.
 import { Input } from "@/components/ui/input"; // Importa o componente Input personalizado.
 import { Label } from "@/components/ui/label"; // Importa o componente Label personalizado.

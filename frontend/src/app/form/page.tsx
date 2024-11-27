@@ -129,6 +129,15 @@ interface FormData {
   observacoesGerente: string;
 }
 
+// Definindo ArrayKeys (apenas chaves de arrays de objetos)
+type ArrayKeys = {
+  [K in keyof FormData]: FormData[K] extends Array<infer U>
+    ? U extends object
+      ? K
+      : never
+    : never;
+}[keyof FormData];
+
 const initialFormData: FormData = {
   rdoNumber: "001",
   empresa: "",
@@ -267,17 +276,20 @@ const RelatorioDiarioObras: React.FC = () => {
     }));
   };
 
-  // Funções de manipulação para arrays (subcontratos, aprovações, custos, etc.)
+  // Funções de manipulação para arrays de objetos
   const handleArrayChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     index: number,
     fieldName: string,
-    arrayName: string
+    arrayName: ArrayKeys
   ) => {
     const { value } = e.target;
     setFormData((prevState) => {
-      const updatedArray = [...(prevState[arrayName as keyof FormData] as any)];
-      updatedArray[index][fieldName] = value;
+      const updatedArray = [...prevState[arrayName]];
+      updatedArray[index] = {
+        ...updatedArray[index],
+        [fieldName]: value,
+      };
       return {
         ...prevState,
         [arrayName]: updatedArray,
@@ -285,28 +297,21 @@ const RelatorioDiarioObras: React.FC = () => {
     });
   };
 
-  const addArrayItem = (arrayName: string, newItem: any) => {
-    setFormData((prevState) => {
-      const updatedArray = [
-        ...(prevState[arrayName as keyof FormData] as any),
-        newItem,
-      ];
-      return {
-        ...prevState,
-        [arrayName]: updatedArray,
-      };
-    });
+  const addArrayItem = (
+    arrayName: ArrayKeys,
+    newItem: FormData[typeof arrayName][number]
+  ) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [arrayName]: [...prevState[arrayName], newItem],
+    }));
   };
 
-  const removeArrayItem = (arrayName: string, index: number) => {
-    setFormData((prevState) => {
-      const updatedArray = [...(prevState[arrayName as keyof FormData] as any)];
-      updatedArray.splice(index, 1);
-      return {
-        ...prevState,
-        [arrayName]: updatedArray,
-      };
-    });
+  const removeArrayItem = (arrayName: ArrayKeys, index: number) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [arrayName]: prevState[arrayName].filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -653,10 +658,10 @@ const RelatorioDiarioObras: React.FC = () => {
               Assinatura do Responsável: ${formData.assinaturaResponsavel}
               <p>Observação: ${formData.observacaoAssinatura}</p>
             </div>
-            <div class="signature">Assinatura do Gerente: ${
-              formData.assinaturaGerente
-            }
-            <p>Observação: ${formData.observacoesGerente}</p></div>
+            <div class="signature">
+              Assinatura do Gerente: ${formData.assinaturaGerente}
+              <p>Observação: ${formData.observacoesGerente}</p>
+            </div>
           </div>
 
           <!-- Campos Editáveis -->
@@ -693,6 +698,7 @@ const RelatorioDiarioObras: React.FC = () => {
 
       if (axios.isAxiosError(error)) {
         if (error.response) {
+          // Erro com resposta do servidor
           message += ` Status: ${error.response.status}. Data: ${JSON.stringify(
             error.response.data
           )}`;
@@ -700,15 +706,22 @@ const RelatorioDiarioObras: React.FC = () => {
           console.error("Status da resposta:", error.response.status);
           console.error("Cabeçalhos da resposta:", error.response.headers);
         } else if (error.request) {
+          // Nenhuma resposta recebida do servidor
           message += " Nenhuma resposta recebida do servidor.";
           console.error("Nenhuma resposta recebida:", error.request);
         } else {
+          // Outro erro relacionado à configuração do Axios
           message += ` Erro na configuração da requisição: ${error.message}`;
           console.error("Erro na configuração da requisição:", error.message);
         }
-      } else {
+      } else if (error instanceof Error) {
+        // Verifica se o erro é uma instância de Error
         message += ` Erro inesperado: ${error.message}`;
         console.error("Erro inesperado:", error.message);
+      } else {
+        // Erro genérico: o tipo de erro é desconhecido
+        message += " Um erro desconhecido ocorreu.";
+        console.error("Erro desconhecido:", error);
       }
 
       setErrorMessage(message);
@@ -743,6 +756,7 @@ const RelatorioDiarioObras: React.FC = () => {
           name="empresa"
           value={formData.empresa}
           onChange={handleChange}
+          required
         />
 
         <Label htmlFor="cliente">Cliente</Label>
@@ -751,6 +765,7 @@ const RelatorioDiarioObras: React.FC = () => {
           name="cliente"
           value={formData.cliente}
           onChange={handleChange}
+          required
         />
 
         <Label htmlFor="usuarioPreencheu">Usuário</Label>
@@ -759,6 +774,7 @@ const RelatorioDiarioObras: React.FC = () => {
           name="usuarioPreencheu"
           value={formData.usuarioPreencheu}
           onChange={handleChange}
+          required
         />
 
         <Label htmlFor="dataRelatorio">Data</Label>
@@ -768,6 +784,7 @@ const RelatorioDiarioObras: React.FC = () => {
           type="date"
           value={formData.dataRelatorio}
           onChange={handleChange}
+          required
         />
 
         {/* Outros campos e seções adicionais... */}
@@ -778,6 +795,7 @@ const RelatorioDiarioObras: React.FC = () => {
           name="localObra"
           value={formData.localObra}
           onChange={handleChange}
+          required
         />
 
         <Label htmlFor="gerenteResponsavel">Gerente Responsável</Label>
@@ -786,6 +804,7 @@ const RelatorioDiarioObras: React.FC = () => {
           name="gerenteResponsavel"
           value={formData.gerenteResponsavel}
           onChange={handleChange}
+          required
         />
 
         <Label htmlFor="tipoObra">Tipo de Obra</Label>
@@ -794,6 +813,7 @@ const RelatorioDiarioObras: React.FC = () => {
           name="tipoObra"
           value={formData.tipoObra}
           onChange={handleChange}
+          required
         />
 
         <Label htmlFor="etapaAtual">Etapa Atual</Label>
@@ -802,6 +822,7 @@ const RelatorioDiarioObras: React.FC = () => {
           name="etapaAtual"
           value={formData.etapaAtual}
           onChange={handleChange}
+          required
         />
 
         <Label htmlFor="localizacaoObra">Localização da Obra</Label>
@@ -810,6 +831,7 @@ const RelatorioDiarioObras: React.FC = () => {
           name="localizacaoObra"
           value={formData.localizacaoObra}
           onChange={handleChange}
+          required
         />
 
         <h2 className="text-xl font-bold mt-6 mb-2">Descrição da Atividade</h2>
@@ -818,6 +840,7 @@ const RelatorioDiarioObras: React.FC = () => {
           name="descricaoAtividade"
           value={formData.descricaoAtividade}
           onChange={handleChange}
+          required
         />
 
         {/* Efetivo */}
@@ -827,74 +850,103 @@ const RelatorioDiarioObras: React.FC = () => {
             <Label htmlFor={`efetivo-nome-${index}`}>Nome</Label>
             <Input
               id={`efetivo-nome-${index}`}
+              name={`efetivo[${index}].nome`}
               value={efetivo.nome}
               onChange={(e) => handleArrayChange(e, index, "nome", "efetivo")}
+              required
             />
+
             <Label htmlFor={`efetivo-funcao-${index}`}>Função</Label>
             <Input
               id={`efetivo-funcao-${index}`}
+              name={`efetivo[${index}].funcao`}
               value={efetivo.funcao}
               onChange={(e) => handleArrayChange(e, index, "funcao", "efetivo")}
+              required
             />
+
             <Label htmlFor={`efetivo-quantidade-${index}`}>Quantidade</Label>
             <Input
               id={`efetivo-quantidade-${index}`}
+              name={`efetivo[${index}].quantidade`}
+              type="number"
               value={efetivo.quantidade}
               onChange={(e) =>
                 handleArrayChange(e, index, "quantidade", "efetivo")
               }
+              required
             />
+
             <Label htmlFor={`efetivo-horasNormais-${index}`}>
               Horas Normais
             </Label>
             <Input
               id={`efetivo-horasNormais-${index}`}
+              name={`efetivo[${index}].horasNormais`}
+              type="number"
               value={efetivo.horasNormais}
               onChange={(e) =>
                 handleArrayChange(e, index, "horasNormais", "efetivo")
               }
+              required
             />
+
             <Label htmlFor={`efetivo-horasExtras-${index}`}>Horas Extras</Label>
             <Input
               id={`efetivo-horasExtras-${index}`}
+              name={`efetivo[${index}].horasExtras`}
+              type="number"
               value={efetivo.horasExtras}
               onChange={(e) =>
                 handleArrayChange(e, index, "horasExtras", "efetivo")
               }
             />
+
             <Label htmlFor={`efetivo-inicioJornada-${index}`}>
               Início da Jornada
             </Label>
             <Input
               id={`efetivo-inicioJornada-${index}`}
+              name={`efetivo[${index}].inicioJornada`}
+              type="time"
               value={efetivo.inicioJornada}
               onChange={(e) =>
                 handleArrayChange(e, index, "inicioJornada", "efetivo")
               }
+              required
             />
+
             <Label htmlFor={`efetivo-fimJornada-${index}`}>
               Fim da Jornada
             </Label>
             <Input
               id={`efetivo-fimJornada-${index}`}
+              name={`efetivo[${index}].fimJornada`}
+              type="time"
               value={efetivo.fimJornada}
               onChange={(e) =>
                 handleArrayChange(e, index, "fimJornada", "efetivo")
               }
+              required
             />
+
             <Label htmlFor={`efetivo-atividadesRealizadas-${index}`}>
               Atividades Realizadas
             </Label>
             <Textarea
               id={`efetivo-atividadesRealizadas-${index}`}
+              name={`efetivo[${index}].atividadesRealizadas`}
               value={efetivo.atividadesRealizadas}
               onChange={(e) =>
                 handleArrayChange(e, index, "atividadesRealizadas", "efetivo")
               }
+              required
             />
+
             <Button
               type="button"
               onClick={() => removeArrayItem("efetivo", index)}
+              className="mt-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
             >
               Remover
             </Button>
@@ -914,24 +966,7 @@ const RelatorioDiarioObras: React.FC = () => {
               atividadesRealizadas: "",
             })
           }
-        >
-          Adicionar Efetivo
-        </Button>
-
-        <Button
-          type="button"
-          onClick={() =>
-            addArrayItem("efetivo", {
-              nome: "",
-              funcao: "",
-              quantidade: "",
-              horasNormais: "",
-              horasExtras: "",
-              inicioJornada: "",
-              fimJornada: "",
-              atividadesRealizadas: "",
-            })
-          }
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
         >
           Adicionar Efetivo
         </Button>
