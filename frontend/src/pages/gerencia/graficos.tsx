@@ -14,7 +14,7 @@ import {
   ArcElement,
 } from "chart.js";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button"; // Botão reutilizável
+import Button from "@/components/ui/button"; // Botão reutilizável
 
 // Registro dos componentes do chart.js
 ChartJS.register(
