@@ -1,12 +1,5 @@
 // MultiSelectField.tsx
 import React from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
 interface MultiSelectFieldProps {
@@ -37,25 +30,6 @@ const MultiSelectField: React.FC<MultiSelectFieldProps> = ({
       <Label className="block text-sm font-medium mb-2 text-gray-700">
         {label}
       </Label>
-      <Select>
-        <SelectTrigger className="w-full border-gray-300 focus:border-indigo-600 focus:ring focus:ring-indigo-600 focus:ring-opacity-50">
-          <SelectValue placeholder="Selecione" />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem
-              key={option.value}
-              value={option.value}
-              onClick={() => handleSelect(option.value)}
-              className={
-                value.includes(option.value) ? "bg-indigo-600 text-white" : ""
-              }
-            >
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
       <div className="mt-2">
         {value.map((selectedValue) => (
           <span

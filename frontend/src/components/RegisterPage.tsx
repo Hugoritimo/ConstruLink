@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"; // Importa React e useState para gerenciar o estado dos componentes.
 import { useRouter } from "next/navigation"; // Importa o hook useRouter para navegar entre as páginas.
-import { Button } from "@/components/ui/button"; // Importa o componente de botão personalizado.
+import Button from "@/components/ui/button"; // Importa o componente de botão personalizado.
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Importa os componentes de Card para estruturação.
 import { Input } from "@/components/ui/input"; // Importa o componente de Input para entradas de dados.
 import { Label } from "@/components/ui/label"; // Importa o componente de Label para rótulos de formulário.
