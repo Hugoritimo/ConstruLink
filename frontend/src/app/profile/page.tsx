@@ -5,7 +5,6 @@ import Button from "@/components/ui/button"; // Importa o componente Button pers
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Importa componentes Card, CardContent, CardHeader e CardTitle.
 import { Input } from "@/components/ui/input"; // Importa o componente Input personalizado.
 import { Label } from "@/components/ui/label"; // Importa o componente Label personalizado.
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Importa o componente Avatar, AvatarImage e AvatarFallback.
 import { useRouter } from "next/navigation"; // Importa o hook useRouter para navegação entre rotas no Next.js.
 
 const ProfilePage = () => {
@@ -100,12 +99,6 @@ const ProfilePage = () => {
             {/* Layout para o avatar e o formulário de edição */}
             <div className="cursor-pointer">
               {/* Avatar do usuário com opção de alterar */}
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={avatarUrl} alt="Avatar do usuário" />{" "}
-                {/* Exibe a imagem do avatar do usuário */}
-                <AvatarFallback>{name[0]}</AvatarFallback>{" "}
-                {/* Exibe a inicial do nome do usuário se não houver avatar */}
-              </Avatar>
               <p className="text-sm text-[#333333] text-center mt-2">
                 Alterar Avatar {/* Texto para alterar o avatar */}
               </p>
