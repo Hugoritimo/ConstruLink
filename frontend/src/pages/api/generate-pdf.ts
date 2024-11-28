@@ -42,9 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     message += ` Erro na configuração da requisição: ${error.message}`;
                     console.error("Erro na configuração da requisição:", error.message);
                 }
-            } else {
-                message += ` Erro inesperado: ${error.message}`;
-                console.error("Erro inesperado:", error.message);
             }
 
             res.status(500).json({ error: message });
