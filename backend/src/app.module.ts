@@ -1,19 +1,10 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { File } from './sharepoint/file.entity';
+import { PdfController } from './pdf/pdf.controller';
+import { PdfService } from './pdf/pdf.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL,
-      entities: [File],
-      synchronize: true,
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    }),
-    TypeOrmModule.forFeature([File]),
-  ],
+  imports: [], // Sem dependências externas por enquanto
+  controllers: [PdfController], // Registrar o PdfController
+  providers: [PdfService], // Registrar o PdfService
 })
 export class AppModule { }
