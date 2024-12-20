@@ -11,8 +11,7 @@ const ProfilePage = () => {
   // Estados para armazenar informações do perfil do usuário.
   const [name, setName] = useState(""); // Estado para armazenar o nome do usuário.
   const [email, setEmail] = useState(""); // Estado para armazenar o e-mail do usuário.
-  const [avatarUrl, setAvatarUrl] = useState("/img/avatar-placeholder.png"); // Estado para armazenar a URL do avatar do usuário. Um avatar padrão é definido inicialmente.
-  const router = useRouter(); // Hook para navegação de páginas.
+  const [, setAvatarUrl] = useState("/img/avatar-placeholder.png"); // Estado para armazenar a URL do avatar do usuário. Um avatar padrão é definido inicialmente.
 
   // Função para buscar o perfil do usuário autenticado.
   useEffect(() => {

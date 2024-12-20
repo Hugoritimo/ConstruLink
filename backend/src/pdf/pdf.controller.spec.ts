@@ -1,21 +1,18 @@
-import { Controller, Post, Body, Res } from '@nestjs/common';
-import { PdfService } from './pdf.service';
-import { Response } from 'express';
+import { Test, TestingModule } from '@nestjs/testing';
+import { PdfController } from './pdf.controller';
 
-@Controller('pdf')
-export class PdfController {
-  constructor(private readonly pdfService: PdfService) { }
+describe('PdfController', () => {
+  let controller: PdfController;
 
-  @Post('generate')
-  async generatePdf(@Body() data: any, @Res() res: Response) {
-    const filePath = await this.pdfService.generateRdo(data);
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [PdfController],
+    }).compile();
 
-    // Enviar o arquivo gerado como resposta
-    res.download(filePath, (err) => {
-      if (err) {
-        console.error('Erro ao enviar o arquivo:', err);
-        res.status(500).send('Erro ao gerar o PDF');
-      }
-    });
-  }
-}
+    controller = module.get<PdfController>(PdfController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});

@@ -1,24 +1,38 @@
-import { Controller, Post, Body, Res } from '@nestjs/common';
-import { PdfService } from './pdf.service';
+import { Controller, Post, Res, Body } from '@nestjs/common';
 import { Response } from 'express';
+import { PdfService } from './pdf.service';
 
-@Controller('pdf') // Base URL do controller
+@Controller('pdf')
 export class PdfController {
     constructor(private readonly pdfService: PdfService) { }
 
-    @Post('generate') // Rota completa: /pdf/generate
-    async generatePdf(@Body() data: any, @Res() res: Response) {
+    @Post('generate')
+    async generatePdf(
+        @Res() res: Response,
+        @Body() body: { htmlContent: string },
+    ) {
         try {
-            const filePath = await this.pdfService.generateRdo(data);
-            res.download(filePath, (err) => {
-                if (err) {
-                    console.error('Erro ao enviar o arquivo:', err);
-                    res.status(500).send('Erro ao gerar o PDF');
-                }
+            // Valida se o HTML foi enviado
+            if (!body.htmlContent) {
+                return res.status(400).json({ message: 'HTML content is required' });
+            }
+
+            // Gera o PDF usando o serviço
+            const pdfBuffer = await this.pdfService.generatePdfFromHtml(
+                body.htmlContent,
+            );
+
+            // Configura os headers do PDF
+            res.set({
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': 'attachment; filename="relatorio-diario.pdf"',
             });
-        } catch (err) {
-            console.error('Erro ao gerar o PDF:', err);
-            res.status(500).send('Erro ao gerar o PDF');
+
+            // Retorna o PDF
+            res.send(pdfBuffer);
+        } catch (error) {
+            console.error('Erro no controller:', error);
+            res.status(500).json({ message: 'Erro ao gerar o PDF' });
         }
     }
 }

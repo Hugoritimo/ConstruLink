@@ -104,7 +104,7 @@ interface FormData {
   ferramentas: Ferramenta[];
   clima: Clima;
   checklistSeguranca: ChecklistItem[];
-  fotos: string[]; // Array de URLs das imagens em Base64
+  fotos: string[];
   incidentes: string;
   observacoesFiscalizacao: string;
   observacoesContratada: string;
@@ -113,7 +113,6 @@ interface FormData {
   assinaturaResponsavel: string;
   assinaturaGerente: string;
   observacaoAssinatura: string;
-  // Novos campos adicionados
   observacoesSeguranca: string;
   atrasos: string;
   inspecoesQualidade: string;
@@ -128,7 +127,7 @@ interface FormData {
   observacoesGerente: string;
 }
 
-// Definindo ArrayKeys (apenas chaves de arrays de objetos)
+// Definindo ArrayKeys
 type ArrayKeys = {
   [K in keyof FormData]: FormData[K] extends Array<infer U>
     ? U extends object
@@ -221,7 +220,6 @@ const initialFormData: FormData = {
   assinaturaResponsavel: "",
   assinaturaGerente: "",
   observacaoAssinatura: "",
-  // Inicialização dos novos campos
   observacoesSeguranca: "",
   atrasos: "",
   inspecoesQualidade: "",
@@ -266,25 +264,41 @@ const RelatorioDiarioObras: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target as HTMLInputElement;
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
 
-  // Funções de manipulação para arrays de objetos
+  const handleCheckboxChange = (
+    index: number,
+    arrayName: "checklistSeguranca"
+  ) => {
+    setFormData((prevState) => {
+      const updatedArray = [...prevState[arrayName]];
+      updatedArray[index] = {
+        ...updatedArray[index],
+        status: !updatedArray[index].status,
+      };
+      return {
+        ...prevState,
+        [arrayName]: updatedArray,
+      };
+    });
+  };
+
   const handleArrayChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
     index: number,
     fieldName: string,
     arrayName: ArrayKeys
   ) => {
     const { value } = e.target;
     setFormData((prevState) => {
-      const updatedArray = [...prevState[arrayName]];
+      const updatedArray = [...(prevState[arrayName] as any[])];
       updatedArray[index] = {
         ...updatedArray[index],
         [fieldName]: value,
@@ -302,15 +316,42 @@ const RelatorioDiarioObras: React.FC = () => {
   ) => {
     setFormData((prevState) => ({
       ...prevState,
-      [arrayName]: [...prevState[arrayName], newItem],
+      [arrayName]: [...(prevState[arrayName] as any[]), newItem],
     }));
   };
 
   const removeArrayItem = (arrayName: ArrayKeys, index: number) => {
     setFormData((prevState) => ({
       ...prevState,
-      [arrayName]: prevState[arrayName].filter((_, i) => i !== index),
+      [arrayName]: (prevState[arrayName] as any[]).filter(
+        (_, i) => i !== index
+      ),
     }));
+  };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      const filePromises = files.map((file) => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (reader.result) {
+              resolve(reader.result as string);
+            } else {
+              reject("Erro ao ler o arquivo");
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      const base64Files = await Promise.all(filePromises);
+      setFormData((prevState) => ({
+        ...prevState,
+        fotos: [...prevState.fotos, ...base64Files],
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -671,60 +712,26 @@ const RelatorioDiarioObras: React.FC = () => {
     `;
 
     try {
-      // Enviando a requisição para a rota de API do Next.js
       const response = await axios.post(
-        "/api/generate-pdf",
+        "http://localhost:3001/pdf/generate",
         { htmlContent },
-        {
-          responseType: "blob",
-        }
+        { responseType: "blob" }
       );
 
       const blob = new Blob([response.data], { type: "application/pdf" });
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = "construlink.pdf";
-      link.click();
+      const url = URL.createObjectURL(blob);
 
-      // Chamada para salvar os dados em um Excel no SharePoint
-      await axios.post("/api/save-to-sharepoint", { formData });
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `relatorio.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       setIsSuccess(true);
-    } catch (error) {
-      console.error("Erro ao gerar o PDF ou salvar no SharePoint:", error);
-
-      let message = "Erro ao processar a solicitação.";
-
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          // Erro com resposta do servidor
-          message += ` Status: ${error.response.status}. Data: ${JSON.stringify(
-            error.response.data
-          )}`;
-          console.error("Data da resposta:", error.response.data);
-          console.error("Status da resposta:", error.response.status);
-          console.error("Cabeçalhos da resposta:", error.response.headers);
-        } else if (error.request) {
-          // Nenhuma resposta recebida do servidor
-          message += " Nenhuma resposta recebida do servidor.";
-          console.error("Nenhuma resposta recebida:", error.request);
-        } else {
-          // Outro erro relacionado à configuração do Axios
-          message += ` Erro na configuração da requisição: ${error.message}`;
-          console.error("Erro na configuração da requisição:", error.message);
-        }
-      } else if (error instanceof Error) {
-        // Verifica se o erro é uma instância de Error
-        message += ` Erro inesperado: ${error.message}`;
-        console.error("Erro inesperado:", error.message);
-      } else {
-        // Erro genérico: o tipo de erro é desconhecido
-        message += " Um erro desconhecido ocorreu.";
-        console.error("Erro desconhecido:", error);
-      }
-
-      setErrorMessage(message);
+    } catch (error: any) {
       setIsError(true);
+      setErrorMessage(error.message || "Erro ao gerar PDF");
     } finally {
       setIsSubmitting(false);
     }
@@ -747,8 +754,16 @@ const RelatorioDiarioObras: React.FC = () => {
         animate={{ opacity: 1 }}
         style={{ maxHeight: "80vh" }}
       >
-        {/* Campos do Formulário */}
-        <h2 className="text-xl font-bold mt-6 mb-2">Informações Gerais</h2>
+        <h2 className="text-xl font-bold">Informações Gerais</h2>
+        <Label htmlFor="rdoNumber">Nº RDO</Label>
+        <Input
+          id="rdoNumber"
+          name="rdoNumber"
+          value={formData.rdoNumber}
+          onChange={handleChange}
+          required
+        />
+
         <Label htmlFor="empresa">Empresa</Label>
         <Input
           id="empresa"
@@ -785,8 +800,6 @@ const RelatorioDiarioObras: React.FC = () => {
           onChange={handleChange}
           required
         />
-
-        {/* Outros campos e seções adicionais... */}
 
         <Label htmlFor="localObra">Local da Obra</Label>
         <Input
@@ -833,7 +846,7 @@ const RelatorioDiarioObras: React.FC = () => {
           required
         />
 
-        <h2 className="text-xl font-bold mt-6 mb-2">Descrição da Atividade</h2>
+        <h2 className="text-xl font-bold">Descrição da Atividade</h2>
         <Textarea
           id="descricaoAtividade"
           name="descricaoAtividade"
@@ -842,32 +855,25 @@ const RelatorioDiarioObras: React.FC = () => {
           required
         />
 
-        {/* Efetivo */}
-        <h2 className="text-xl font-bold mt-6 mb-2">Efetivo</h2>
+        <h2 className="text-xl font-bold">Efetivo</h2>
         {formData.efetivo.map((efetivo, index) => (
           <div key={index} className="border p-4 mb-4">
-            <Label htmlFor={`efetivo-nome-${index}`}>Nome</Label>
+            <Label>Nome</Label>
             <Input
-              id={`efetivo-nome-${index}`}
-              name={`efetivo[${index}].nome`}
               value={efetivo.nome}
               onChange={(e) => handleArrayChange(e, index, "nome", "efetivo")}
               required
             />
 
-            <Label htmlFor={`efetivo-funcao-${index}`}>Função</Label>
+            <Label>Função</Label>
             <Input
-              id={`efetivo-funcao-${index}`}
-              name={`efetivo[${index}].funcao`}
               value={efetivo.funcao}
               onChange={(e) => handleArrayChange(e, index, "funcao", "efetivo")}
               required
             />
 
-            <Label htmlFor={`efetivo-quantidade-${index}`}>Quantidade</Label>
+            <Label>Quantidade</Label>
             <Input
-              id={`efetivo-quantidade-${index}`}
-              name={`efetivo[${index}].quantidade`}
               type="number"
               value={efetivo.quantidade}
               onChange={(e) =>
@@ -876,12 +882,8 @@ const RelatorioDiarioObras: React.FC = () => {
               required
             />
 
-            <Label htmlFor={`efetivo-horasNormais-${index}`}>
-              Horas Normais
-            </Label>
+            <Label>Horas Normais</Label>
             <Input
-              id={`efetivo-horasNormais-${index}`}
-              name={`efetivo[${index}].horasNormais`}
               type="number"
               value={efetivo.horasNormais}
               onChange={(e) =>
@@ -890,10 +892,8 @@ const RelatorioDiarioObras: React.FC = () => {
               required
             />
 
-            <Label htmlFor={`efetivo-horasExtras-${index}`}>Horas Extras</Label>
+            <Label>Horas Extras</Label>
             <Input
-              id={`efetivo-horasExtras-${index}`}
-              name={`efetivo[${index}].horasExtras`}
               type="number"
               value={efetivo.horasExtras}
               onChange={(e) =>
@@ -901,12 +901,8 @@ const RelatorioDiarioObras: React.FC = () => {
               }
             />
 
-            <Label htmlFor={`efetivo-inicioJornada-${index}`}>
-              Início da Jornada
-            </Label>
+            <Label>Início da Jornada</Label>
             <Input
-              id={`efetivo-inicioJornada-${index}`}
-              name={`efetivo[${index}].inicioJornada`}
               type="time"
               value={efetivo.inicioJornada}
               onChange={(e) =>
@@ -915,12 +911,8 @@ const RelatorioDiarioObras: React.FC = () => {
               required
             />
 
-            <Label htmlFor={`efetivo-fimJornada-${index}`}>
-              Fim da Jornada
-            </Label>
+            <Label>Fim da Jornada</Label>
             <Input
-              id={`efetivo-fimJornada-${index}`}
-              name={`efetivo[${index}].fimJornada`}
               type="time"
               value={efetivo.fimJornada}
               onChange={(e) =>
@@ -929,12 +921,8 @@ const RelatorioDiarioObras: React.FC = () => {
               required
             />
 
-            <Label htmlFor={`efetivo-atividadesRealizadas-${index}`}>
-              Atividades Realizadas
-            </Label>
+            <Label>Atividades Realizadas</Label>
             <Textarea
-              id={`efetivo-atividadesRealizadas-${index}`}
-              name={`efetivo[${index}].atividadesRealizadas`}
               value={efetivo.atividadesRealizadas}
               onChange={(e) =>
                 handleArrayChange(e, index, "atividadesRealizadas", "efetivo")
@@ -970,7 +958,659 @@ const RelatorioDiarioObras: React.FC = () => {
           Adicionar Efetivo
         </Button>
 
-        {/* Botão de Envio */}
+        {/* Equipamentos */}
+        <h2 className="text-xl font-bold">Equipamentos</h2>
+        {formData.equipamentos.map((eq, index) => (
+          <div key={index} className="border p-4 mb-4">
+            <Label>Nome</Label>
+            <Input
+              value={eq.nome}
+              onChange={(e) =>
+                handleArrayChange(e, index, "nome", "equipamentos")
+              }
+            />
+            <Label>Quantidade</Label>
+            <Input
+              value={eq.quantidade}
+              onChange={(e) =>
+                handleArrayChange(e, index, "quantidade", "equipamentos")
+              }
+            />
+            <Label>Condição</Label>
+            <Input
+              value={eq.condicao}
+              onChange={(e) =>
+                handleArrayChange(e, index, "condicao", "equipamentos")
+              }
+            />
+            <Label>Data de Inspeção</Label>
+            <Input
+              value={eq.dataInspecao}
+              onChange={(e) =>
+                handleArrayChange(e, index, "dataInspecao", "equipamentos")
+              }
+            />
+            <Label>Observações</Label>
+            <Textarea
+              value={eq.observacoes}
+              onChange={(e) =>
+                handleArrayChange(e, index, "observacoes", "equipamentos")
+              }
+            />
+            <Button
+              type="button"
+              onClick={() => removeArrayItem("equipamentos", index)}
+              className="mt-2 bg-red-500 text-white"
+            >
+              Remover
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          onClick={() =>
+            addArrayItem("equipamentos", {
+              nome: "",
+              quantidade: "",
+              condicao: "",
+              dataInspecao: "",
+              observacoes: "",
+            })
+          }
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Adicionar Equipamento
+        </Button>
+
+        {/* Ferramentas */}
+        <h2 className="text-xl font-bold">Ferramentas</h2>
+        {formData.ferramentas.map((tool, index) => (
+          <div key={index} className="border p-4 mb-4">
+            <Label>Nome</Label>
+            <Input
+              value={tool.nome}
+              onChange={(e) =>
+                handleArrayChange(e, index, "nome", "ferramentas")
+              }
+            />
+            <Label>Quantidade</Label>
+            <Input
+              value={tool.quantidade}
+              onChange={(e) =>
+                handleArrayChange(e, index, "quantidade", "ferramentas")
+              }
+            />
+            <Label>Condição</Label>
+            <Input
+              value={tool.condicao}
+              onChange={(e) =>
+                handleArrayChange(e, index, "condicao", "ferramentas")
+              }
+            />
+            <Label>Data de Inspeção</Label>
+            <Input
+              value={tool.dataInspecao}
+              onChange={(e) =>
+                handleArrayChange(e, index, "dataInspecao", "ferramentas")
+              }
+            />
+            <Label>Observações</Label>
+            <Textarea
+              value={tool.observacoes}
+              onChange={(e) =>
+                handleArrayChange(e, index, "observacoes", "ferramentas")
+              }
+            />
+            <Button
+              type="button"
+              onClick={() => removeArrayItem("ferramentas", index)}
+              className="mt-2 bg-red-500 text-white"
+            >
+              Remover
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          onClick={() =>
+            addArrayItem("ferramentas", {
+              nome: "",
+              quantidade: "",
+              condicao: "",
+              dataInspecao: "",
+              observacoes: "",
+            })
+          }
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Adicionar Ferramenta
+        </Button>
+
+        {/* Clima */}
+        <h2 className="text-xl font-bold">Clima</h2>
+        <Label>Tempo</Label>
+        <Input
+          name="tempo"
+          value={formData.clima.tempo}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              clima: { ...formData.clima, tempo: e.target.value },
+            })
+          }
+        />
+        <Label>Temperatura Manhã</Label>
+        <Input
+          name="temperaturaManha"
+          value={formData.clima.temperaturaManha}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              clima: { ...formData.clima, temperaturaManha: e.target.value },
+            })
+          }
+        />
+        <Label>Temperatura Tarde</Label>
+        <Input
+          name="temperaturaTarde"
+          value={formData.clima.temperaturaTarde}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              clima: { ...formData.clima, temperaturaTarde: e.target.value },
+            })
+          }
+        />
+        <Label>Umidade Manhã</Label>
+        <Input
+          name="umidadeManha"
+          value={formData.clima.umidadeManha}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              clima: { ...formData.clima, umidadeManha: e.target.value },
+            })
+          }
+        />
+        <Label>Umidade Tarde</Label>
+        <Input
+          name="umidadeTarde"
+          value={formData.clima.umidadeTarde}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              clima: { ...formData.clima, umidadeTarde: e.target.value },
+            })
+          }
+        />
+        <Label>Vento</Label>
+        <Input
+          name="vento"
+          value={formData.clima.vento}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              clima: { ...formData.clima, vento: e.target.value },
+            })
+          }
+        />
+        <Label>Índice UV</Label>
+        <Input
+          name="uv"
+          value={formData.clima.uv}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              clima: { ...formData.clima, uv: e.target.value },
+            })
+          }
+        />
+        <Label>Observações (Clima)</Label>
+        <Textarea
+          name="observacoes"
+          value={formData.clima.observacoes}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              clima: { ...formData.clima, observacoes: e.target.value },
+            })
+          }
+        />
+
+        {/* Checklist de Segurança */}
+        <h2 className="text-xl font-bold">Checklist de Segurança</h2>
+        {formData.checklistSeguranca.map((item, index) => (
+          <div key={index} className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={item.status}
+              onChange={() => handleCheckboxChange(index, "checklistSeguranca")}
+            />
+            <span>{item.item}</span>
+          </div>
+        ))}
+
+        {/* Observações de Segurança */}
+        <h2 className="text-xl font-bold">Observações de Segurança</h2>
+        <Textarea
+          name="observacoesSeguranca"
+          value={formData.observacoesSeguranca}
+          onChange={handleChange}
+        />
+
+        {/* Atrasos e Interrupções */}
+        <h2 className="text-xl font-bold">Atrasos e Interrupções</h2>
+        <Textarea
+          name="atrasos"
+          value={formData.atrasos}
+          onChange={handleChange}
+        />
+
+        {/* Inspeções de Qualidade */}
+        <h2 className="text-xl font-bold">Inspeções de Qualidade</h2>
+        <Textarea
+          name="inspecoesQualidade"
+          value={formData.inspecoesQualidade}
+          onChange={handleChange}
+        />
+
+        {/* Subcontratos */}
+        <h2 className="text-xl font-bold">Subcontratos</h2>
+        {formData.subcontratos.map((sub, index) => (
+          <div key={index} className="border p-4 mb-4">
+            <Label>Nome</Label>
+            <Input
+              value={sub.nome}
+              onChange={(e) =>
+                handleArrayChange(e, index, "nome", "subcontratos")
+              }
+            />
+            <Label>Serviço</Label>
+            <Input
+              value={sub.servico}
+              onChange={(e) =>
+                handleArrayChange(e, index, "servico", "subcontratos")
+              }
+            />
+            <Label>Horas Trabalhadas</Label>
+            <Input
+              value={sub.horasTrabalhadas}
+              onChange={(e) =>
+                handleArrayChange(e, index, "horasTrabalhadas", "subcontratos")
+              }
+            />
+            <Label>Observações</Label>
+            <Textarea
+              value={sub.observacoes}
+              onChange={(e) =>
+                handleArrayChange(e, index, "observacoes", "subcontratos")
+              }
+            />
+            <Button
+              type="button"
+              onClick={() => removeArrayItem("subcontratos", index)}
+            >
+              Remover
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          onClick={() =>
+            addArrayItem("subcontratos", {
+              nome: "",
+              servico: "",
+              horasTrabalhadas: "",
+              observacoes: "",
+            })
+          }
+          className="bg-green-500 text-white"
+        >
+          Adicionar Subcontrato
+        </Button>
+
+        {/* Considerações Ambientais */}
+        <h2 className="text-xl font-bold">Considerações Ambientais</h2>
+        <Textarea
+          name="consideracoesAmbientais"
+          value={formData.consideracoesAmbientais}
+          onChange={handleChange}
+        />
+
+        {/* Aprovações e Permissões */}
+        <h2 className="text-xl font-bold">Aprovações e Permissões</h2>
+        {formData.aprovacoesPermissoes.map((ap, index) => (
+          <div key={index} className="border p-4 mb-4">
+            <Label>Tipo</Label>
+            <Input
+              value={ap.tipo}
+              onChange={(e) =>
+                handleArrayChange(e, index, "tipo", "aprovacoesPermissoes")
+              }
+            />
+            <Label>Status</Label>
+            <Input
+              value={ap.status}
+              onChange={(e) =>
+                handleArrayChange(e, index, "status", "aprovacoesPermissoes")
+              }
+            />
+            <Label>Data de Obtenção</Label>
+            <Input
+              value={ap.dataObtencao}
+              onChange={(e) =>
+                handleArrayChange(
+                  e,
+                  index,
+                  "dataObtencao",
+                  "aprovacoesPermissoes"
+                )
+              }
+            />
+            <Label>Observações</Label>
+            <Textarea
+              value={ap.observacoes}
+              onChange={(e) =>
+                handleArrayChange(
+                  e,
+                  index,
+                  "observacoes",
+                  "aprovacoesPermissoes"
+                )
+              }
+            />
+            <Button
+              type="button"
+              onClick={() => removeArrayItem("aprovacoesPermissoes", index)}
+            >
+              Remover
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          onClick={() =>
+            addArrayItem("aprovacoesPermissoes", {
+              tipo: "",
+              status: "",
+              dataObtencao: "",
+              observacoes: "",
+            })
+          }
+          className="bg-green-500 text-white"
+        >
+          Adicionar Aprovação/Permissão
+        </Button>
+
+        {/* Custo e Orçamento */}
+        <h2 className="text-xl font-bold">Custo e Orçamento</h2>
+        {formData.custoOrcamento.map((custo, index) => (
+          <div key={index} className="border p-4 mb-4">
+            <Label>Item</Label>
+            <Input
+              value={custo.item}
+              onChange={(e) =>
+                handleArrayChange(e, index, "item", "custoOrcamento")
+              }
+            />
+            <Label>Custo Planejado</Label>
+            <Input
+              value={custo.custoPlanejado}
+              onChange={(e) =>
+                handleArrayChange(e, index, "custoPlanejado", "custoOrcamento")
+              }
+            />
+            <Label>Custo Real</Label>
+            <Input
+              value={custo.custoReal}
+              onChange={(e) =>
+                handleArrayChange(e, index, "custoReal", "custoOrcamento")
+              }
+            />
+            <Label>Variação</Label>
+            <Input
+              value={custo.variacao}
+              onChange={(e) =>
+                handleArrayChange(e, index, "variacao", "custoOrcamento")
+              }
+            />
+            <Label>Observações</Label>
+            <Textarea
+              value={custo.observacoes}
+              onChange={(e) =>
+                handleArrayChange(e, index, "observacoes", "custoOrcamento")
+              }
+            />
+            <Button
+              type="button"
+              onClick={() => removeArrayItem("custoOrcamento", index)}
+            >
+              Remover
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          onClick={() =>
+            addArrayItem("custoOrcamento", {
+              item: "",
+              custoPlanejado: "",
+              custoReal: "",
+              variacao: "",
+              observacoes: "",
+            })
+          }
+          className="bg-green-500 text-white"
+        >
+          Adicionar Custo/Orçamento
+        </Button>
+
+        {/* Resumo Diário */}
+        <h2 className="text-xl font-bold">Resumo Diário</h2>
+        <Textarea
+          name="resumoDiario"
+          value={formData.resumoDiario}
+          onChange={handleChange}
+        />
+
+        {/* Problemas Encontrados */}
+        <h2 className="text-xl font-bold">Problemas Encontrados</h2>
+        <Textarea
+          name="problemasEncontrados"
+          value={formData.problemasEncontrados}
+          onChange={handleChange}
+        />
+
+        {/* Ações Requeridas */}
+        <h2 className="text-xl font-bold">Ações Requeridas</h2>
+        <Textarea
+          name="acoesRequeridas"
+          value={formData.acoesRequeridas}
+          onChange={handleChange}
+        />
+
+        {/* Comunicações */}
+        <h2 className="text-xl font-bold">Comunicações</h2>
+        <Textarea
+          name="comunicacoes"
+          value={formData.comunicacoes}
+          onChange={handleChange}
+        />
+
+        {/* Incidentes */}
+        <h2 className="text-xl font-bold">Incidentes</h2>
+        <Textarea
+          name="incidentes"
+          value={formData.incidentes}
+          onChange={handleChange}
+        />
+
+        {/* Observações da Fiscalização */}
+        <h2 className="text-xl font-bold">Observações da Fiscalização</h2>
+        <Textarea
+          name="observacoesFiscalizacao"
+          value={formData.observacoesFiscalizacao}
+          onChange={handleChange}
+        />
+
+        {/* Observações da Contratada */}
+        <h2 className="text-xl font-bold">Observações da Contratada</h2>
+        <Textarea
+          name="observacoesContratada"
+          value={formData.observacoesContratada}
+          onChange={handleChange}
+        />
+
+        {/* Material Utilizado */}
+        <h2 className="text-xl font-bold">Material Utilizado</h2>
+        {formData.materialUtilizado.map((mat, index) => (
+          <div key={index} className="border p-4 mb-4">
+            <Label>Nome</Label>
+            <Input
+              value={mat.nome}
+              onChange={(e) =>
+                handleArrayChange(e, index, "nome", "materialUtilizado")
+              }
+            />
+            <Label>Quantidade</Label>
+            <Input
+              value={mat.quantidade}
+              onChange={(e) =>
+                handleArrayChange(e, index, "quantidade", "materialUtilizado")
+              }
+            />
+            <Label>Unidade</Label>
+            <Input
+              value={mat.unidade}
+              onChange={(e) =>
+                handleArrayChange(e, index, "unidade", "materialUtilizado")
+              }
+            />
+            <Label>Observações</Label>
+            <Textarea
+              value={mat.observacoes}
+              onChange={(e) =>
+                handleArrayChange(e, index, "observacoes", "materialUtilizado")
+              }
+            />
+            <Button
+              type="button"
+              onClick={() => removeArrayItem("materialUtilizado", index)}
+            >
+              Remover
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          onClick={() =>
+            addArrayItem("materialUtilizado", {
+              nome: "",
+              quantidade: "",
+              unidade: "",
+              observacoes: "",
+            })
+          }
+          className="bg-green-500 text-white"
+        >
+          Adicionar Material
+        </Button>
+
+        {/* Status dos Serviços */}
+        <h2 className="text-xl font-bold">Status dos Serviços</h2>
+        {formData.statusServicos.map((serv, index) => (
+          <div key={index} className="border p-4 mb-4">
+            <Label>Serviço</Label>
+            <Input
+              value={serv.nome}
+              onChange={(e) =>
+                handleArrayChange(e, index, "nome", "statusServicos")
+              }
+            />
+            <Label>Percentual Concluído</Label>
+            <Input
+              value={serv.percentualConcluido}
+              onChange={(e) =>
+                handleArrayChange(
+                  e,
+                  index,
+                  "percentualConcluido",
+                  "statusServicos"
+                )
+              }
+            />
+            <Label>Motivo de Atraso</Label>
+            <Input
+              value={serv.motivoAtraso}
+              onChange={(e) =>
+                handleArrayChange(e, index, "motivoAtraso", "statusServicos")
+              }
+            />
+            <Label>Observações</Label>
+            <Textarea
+              value={serv.observacoes}
+              onChange={(e) =>
+                handleArrayChange(e, index, "observacoes", "statusServicos")
+              }
+            />
+            <Button
+              type="button"
+              onClick={() => removeArrayItem("statusServicos", index)}
+            >
+              Remover
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          onClick={() =>
+            addArrayItem("statusServicos", {
+              nome: "",
+              percentualConcluido: "",
+              motivoAtraso: "",
+              observacoes: "",
+            })
+          }
+          className="bg-green-500 text-white"
+        >
+          Adicionar Status de Serviço
+        </Button>
+
+        {/* Fotos */}
+        <h2 className="text-xl font-bold">Fotos</h2>
+        <Input type="file" multiple onChange={handleFileChange} />
+        {formData.fotos.length > 0 && (
+          <p>{formData.fotos.length} foto(s) selecionada(s).</p>
+        )}
+
+        {/* Assinaturas */}
+        <h2 className="text-xl font-bold">Assinaturas</h2>
+        <Label>Assinatura do Responsável</Label>
+        <Input
+          name="assinaturaResponsavel"
+          value={formData.assinaturaResponsavel}
+          onChange={handleChange}
+        />
+        <Label>Observação da Assinatura</Label>
+        <Textarea
+          name="observacaoAssinatura"
+          value={formData.observacaoAssinatura}
+          onChange={handleChange}
+        />
+
+        <Label>Assinatura do Gerente</Label>
+        <Input
+          name="assinaturaGerente"
+          value={formData.assinaturaGerente}
+          onChange={handleChange}
+        />
+        <Label>Observações do Gerente</Label>
+        <Textarea
+          name="observacoesGerente"
+          value={formData.observacoesGerente}
+          onChange={handleChange}
+        />
+
         <div className="flex justify-center mt-6">
           <Button
             type="submit"
@@ -987,7 +1627,7 @@ const RelatorioDiarioObras: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            PDF gerado e dados salvos com sucesso!
+            PDF gerado e download iniciado com sucesso!
           </motion.p>
         )}
         {isError && errorMessage && (
