@@ -362,354 +362,98 @@ const RelatorioDiarioObras: React.FC = () => {
     setErrorMessage("");
 
     const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            body { font-family: Arial, sans-serif; }
-            h1 { color: #af1b1b; text-align: center; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid black; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            .signatures { margin-top: 40px; display: flex; justify-content: space-between; }
-            .signature { width: 30%; text-align: center; border-top: 1px solid black; padding-top: 5px; }
-            .photo { margin: 10px 0; }
-            input { border: none; border-bottom: 1px solid #000; width: 100%; }
-          </style>
-        </head>
-        <body>
-          <h1>Relatório Diário de Obras Extenso</h1>
-          <h2>Informações Gerais</h2>
-          <table>
-            <tr><th>Nº RDO</th><td>${formData.rdoNumber}</td></tr>
-            <tr><th>Empresa</th><td>${formData.empresa}</td></tr>
-            <tr><th>Cliente</th><td>${formData.cliente}</td></tr>
-            <tr><th>Usuário</th><td>${formData.usuarioPreencheu}</td></tr>
-            <tr><th>Data</th><td>${formData.dataRelatorio}</td></tr>
-            <tr><th>Local da Obra</th><td>${formData.localObra}</td></tr>
-            <tr><th>Gerente Responsável</th><td>${
-              formData.gerenteResponsavel
-            }</td></tr>
-            <tr><th>Tipo de Obra</th><td>${formData.tipoObra}</td></tr>
-            <tr><th>Etapa Atual</th><td>${formData.etapaAtual}</td></tr>
-            <tr><th>Localização da Obra</th><td>${
-              formData.localizacaoObra
-            }</td></tr>
-          </table>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 12px; }
+  h1 { color: #af1b1b; text-align: center; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  th, td { border: 1px solid #000; padding: 5px; vertical-align: top; }
+  th { background-color: #f2f2f2; }
+  .header-table { margin-bottom: 30px; }
+  .header-table td { border: none; }
+  .logo { width: 100px; }
+  .section-title { background-color: #ddd; font-weight: bold; text-align: left; padding: 5px; margin-top: 10px; }
+  .photos img { max-width: 200px; height: auto; display: block; margin-bottom: 5px; }
+</style>
+</head>
+<body>
+  <table class="header-table">
+    <tr>
+      <td><img src="https://via.placeholder.com/100x50.png?text=Logo" class="logo" /></td>
+      <td style="text-align: right;">
+        <strong>Relatório Diário de Obra (RDO)</strong><br/>
+        Data: ${new Date().toLocaleDateString()}
+      </td>
+    </tr>
+  </table>
 
-          <h2>Descrição da Atividade</h2>
-          <p>${formData.descricaoAtividade}</p>
+  <h1>Obra: Topografia Ter Paz</h1>
 
-          <!-- Efetivo -->
-          <h2>Efetivo</h2>
-          <table>
-            <tr>
-              <th>Nome</th>
-              <th>Função</th>
-              <th>Quantidade</th>
-              <th>Horas Normais</th>
-              <th>Horas Extras</th>
-              <th>Início da Jornada</th>
-              <th>Fim da Jornada</th>
-              <th>Atividades Realizadas</th>
-            </tr>
-            ${formData.efetivo
-              .map(
-                (ef) => `
-                  <tr>
-                    <td>${ef.nome}</td>
-                    <td>${ef.funcao}</td>
-                    <td>${ef.quantidade}</td>
-                    <td>${ef.horasNormais}</td>
-                    <td>${ef.horasExtras}</td>
-                    <td>${ef.inicioJornada}</td>
-                    <td>${ef.fimJornada}</td>
-                    <td>${ef.atividadesRealizadas}</td>
-                  </tr>
-                `
-              )
-              .join("")}
-          </table>
+  <table>
+    <tr>
+      <th>Local</th><td>VALE S.A</td>
+      <th>Responsável</th><td>Carlos Roberto</td>
+    </tr>
+    <tr>
+      <th>Cliente</th><td>VALE S.A</td>
+      <th>Contrato</th><td>0009911</td>
+    </tr>
+    <tr>
+      <th>Prazo Contratual</th><td>781 dias</td>
+      <th>Prazo Decorrido</th><td>420 dias</td>
+    </tr>
+  </table>
 
-          <!-- Equipamentos -->
-          <h2>Equipamentos</h2>
-          <table>
-            <tr>
-              <th>Nome</th>
-              <th>Quantidade</th>
-              <th>Condição</th>
-              <th>Data de Inspeção</th>
-              <th>Observações</th>
-            </tr>
-            ${formData.equipamentos
-              .map(
-                (eq) => `
-                  <tr>
-                    <td>${eq.nome}</td>
-                    <td>${eq.quantidade}</td>
-                    <td>${eq.condicao}</td>
-                    <td>${eq.dataInspecao}</td>
-                    <td>${eq.observacoes}</td>
-                  </tr>
-                `
-              )
-              .join("")}
-          </table>
+  <div class="section-title">Condição Climática</div>
+  <table>
+    <tr>
+      <th>Manhã</th><td>Claro - Praticável</td>
+      <th>Tarde</th><td>Nublado - Praticável</td>
+    </tr>
+  </table>
 
-          <!-- Ferramentas -->
-          <h2>Ferramentas</h2>
-          <table>
-            <tr>
-              <th>Nome</th>
-              <th>Quantidade</th>
-              <th>Condição</th>
-              <th>Data de Inspeção</th>
-              <th>Observações</th>
-            </tr>
-            ${formData.ferramentas
-              .map(
-                (tool) => `
-                  <tr>
-                    <td>${tool.nome}</td>
-                    <td>${tool.quantidade}</td>
-                    <td>${tool.condicao}</td>
-                    <td>${tool.dataInspecao}</td>
-                    <td>${tool.observacoes}</td>
-                  </tr>
-                `
-              )
-              .join("")}
-          </table>
+  <div class="section-title">Mão de Obra (2)</div>
+  <table>
+    <tr><th>Função</th><th>Quantidade</th></tr>
+    <tr><td>Auxiliar de Topografia</td><td>1</td></tr>
+    <tr><td>Topógrafo Pleno</td><td>1</td></tr>
+  </table>
 
-          <!-- Clima -->
-          <h2>Clima</h2>
-          <table>
-            <tr><th>Tempo</th><td>${formData.clima.tempo}</td></tr>
-            <tr><th>Temperatura Manhã</th><td>${
-              formData.clima.temperaturaManha
-            }°C</td></tr>
-            <tr><th>Temperatura Tarde</th><td>${
-              formData.clima.temperaturaTarde
-            }°C</td></tr>
-            <tr><th>Umidade Manhã</th><td>${
-              formData.clima.umidadeManha
-            }%</td></tr>
-            <tr><th>Umidade Tarde</th><td>${
-              formData.clima.umidadeTarde
-            }%</td></tr>
-            <tr><th>Vento</th><td>${formData.clima.vento}</td></tr>
-            <tr><th>Índice UV</th><td>${formData.clima.uv}</td></tr>
-            <tr><th>Observações</th><td>${formData.clima.observacoes}</td></tr>
-          </table>
+  <div class="section-title">Equipamentos (4)</div>
+  <table>
+    <tr><th>Tripé</th><th>Bipé</th><th>Estação Total</th><th>RTK</th></tr>
+    <tr><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+  </table>
 
-          <!-- Checklist de Segurança -->
-          <h2>Checklist de Segurança</h2>
-          <table>
-            <tr><th>Item</th><th>Status</th></tr>
-            ${formData.checklistSeguranca
-              .map(
-                (item) => `
-                  <tr>
-                    <td>${item.item}</td>
-                    <td>${item.status ? "✔️" : "❌"}</td>
-                  </tr>
-                `
-              )
-              .join("")}
-          </table>
+  <div class="section-title">Atividades</div>
+  <p>Durante a manhã a equipe realizou atividade topográfica das 7:00 às 12:00. Às 12:01 equipe foi para o almoço, retornando às 13:01. Durante a tarde a equipe prosseguiu com a atividade até às 16:48.</p>
 
-          <!-- Observações de Segurança -->
-          <h2>Observações de Segurança</h2>
-          <p>${formData.observacoesSeguranca}</p>
+  <div class="section-title">Ocorrências</div>
+  <table>
+    <tr><th>Almoço</th><td>12:01 até 13:01 (1h)</td></tr>
+  </table>
 
-          <!-- Atrasos e Interrupções -->
-          <h2>Atrasos e Interrupções</h2>
-          <p>${formData.atrasos}</p>
+  <div class="section-title">Fotos (4)</div>
+  <table class="photos">
+    <tr>
+      <td>
+        <img src="https://via.placeholder.com/200x150.png?text=Foto+1" />
+        <small>Durante a manhã a equipe realizou atividade topográfica das 7:00 às 12:00... </small>
+      </td>
+      <td>
+        <img src="https://via.placeholder.com/200x150.png?text=Foto+2" />
+        <small>Durante a manhã a equipe realizou atividade topográfica das 7:00 às 12:00... </small>
+      </td>
+    </tr>
+  </table>
 
-          <!-- Inspeções de Qualidade -->
-          <h2>Inspeções de Qualidade</h2>
-          <p>${formData.inspecoesQualidade}</p>
+</body>
+</html>
+`;
 
-          <!-- Subcontratos -->
-          <h2>Subcontratos</h2>
-          <table>
-            <tr>
-              <th>Nome</th>
-              <th>Serviço</th>
-              <th>Horas Trabalhadas</th>
-              <th>Observações</th>
-            </tr>
-            ${formData.subcontratos
-              .map(
-                (sub) => `
-                  <tr>
-                    <td>${sub.nome}</td>
-                    <td>${sub.servico}</td>
-                    <td>${sub.horasTrabalhadas}</td>
-                    <td>${sub.observacoes}</td>
-                  </tr>
-                `
-              )
-              .join("")}
-          </table>
-
-          <!-- Considerações Ambientais -->
-          <h2>Considerações Ambientais</h2>
-          <p>${formData.consideracoesAmbientais}</p>
-
-          <!-- Aprovações e Permissões -->
-          <h2>Aprovações e Permissões</h2>
-          <table>
-            <tr>
-              <th>Tipo</th>
-              <th>Status</th>
-              <th>Data de Obtenção</th>
-              <th>Observações</th>
-            </tr>
-            ${formData.aprovacoesPermissoes
-              .map(
-                (ap) => `
-                  <tr>
-                    <td>${ap.tipo}</td>
-                    <td>${ap.status}</td>
-                    <td>${ap.dataObtencao}</td>
-                    <td>${ap.observacoes}</td>
-                  </tr>
-                `
-              )
-              .join("")}
-          </table>
-
-          <!-- Custo e Orçamento -->
-          <h2>Custo e Orçamento</h2>
-          <table>
-            <tr>
-              <th>Item</th>
-              <th>Custo Planejado</th>
-              <th>Custo Real</th>
-              <th>Variação</th>
-              <th>Observações</th>
-            </tr>
-            ${formData.custoOrcamento
-              .map(
-                (custo) => `
-                  <tr>
-                    <td>${custo.item}</td>
-                    <td>${custo.custoPlanejado}</td>
-                    <td>${custo.custoReal}</td>
-                    <td>${custo.variacao}</td>
-                    <td>${custo.observacoes}</td>
-                  </tr>
-                `
-              )
-              .join("")}
-          </table>
-
-          <!-- Resumo Diário -->
-          <h2>Resumo Diário</h2>
-          <p>${formData.resumoDiario}</p>
-
-          <!-- Problemas Encontrados -->
-          <h2>Problemas Encontrados</h2>
-          <p>${formData.problemasEncontrados}</p>
-
-          <!-- Ações Requeridas -->
-          <h2>Ações Requeridas</h2>
-          <p>${formData.acoesRequeridas}</p>
-
-          <!-- Comunicações -->
-          <h2>Comunicações</h2>
-          <p>${formData.comunicacoes}</p>
-
-          <!-- Incidentes -->
-          <h2>Incidentes</h2>
-          <p>${formData.incidentes}</p>
-
-          <!-- Observações da Fiscalização -->
-          <h2>Observações da Fiscalização</h2>
-          <p>${formData.observacoesFiscalizacao}</p>
-
-          <!-- Observações da Contratada -->
-          <h2>Observações da Contratada</h2>
-          <p>${formData.observacoesContratada}</p>
-
-          <!-- Material Utilizado -->
-          <h2>Material Utilizado</h2>
-          <table>
-            <tr>
-              <th>Nome</th>
-              <th>Quantidade</th>
-              <th>Unidade</th>
-              <th>Observações</th>
-            </tr>
-            ${formData.materialUtilizado
-              .map(
-                (material) => `
-                  <tr>
-                    <td>${material.nome}</td>
-                    <td>${material.quantidade}</td>
-                    <td>${material.unidade}</td>
-                    <td>${material.observacoes}</td>
-                  </tr>
-                `
-              )
-              .join("")}
-          </table>
-
-          <!-- Status dos Serviços -->
-          <h2>Status dos Serviços</h2>
-          <table>
-            <tr>
-              <th>Serviço</th>
-              <th>Percentual Concluído</th>
-              <th>Motivo de Atraso</th>
-              <th>Observações</th>
-            </tr>
-            ${formData.statusServicos
-              .map(
-                (servico) => `
-                  <tr>
-                    <td>${servico.nome}</td>
-                    <td>${servico.percentualConcluido}%</td>
-                    <td>${servico.motivoAtraso}</td>
-                    <td>${servico.observacoes}</td>
-                  </tr>
-                `
-              )
-              .join("")}
-          </table>
-
-          <!-- Fotos -->
-          <h2>Fotos</h2>
-          ${formData.fotos
-            .map(
-              (foto) => `
-                <div class="photo">
-                  <img src="${foto}" alt="Foto" style="max-width: 100%; height: auto;" />
-                </div>
-              `
-            )
-            .join("")}
-
-          <!-- Assinaturas -->
-          <div class="signatures">
-            <div class="signature">
-              Assinatura do Responsável: ${formData.assinaturaResponsavel}
-              <p>Observação: ${formData.observacaoAssinatura}</p>
-            </div>
-            <div class="signature">
-              Assinatura do Gerente: ${formData.assinaturaGerente}
-              <p>Observação: ${formData.observacoesGerente}</p>
-            </div>
-          </div>
-
-          <!-- Campos Editáveis -->
-          <h2>Observações Adicionais</h2>
-          <p><input type="text" placeholder="Digite aqui..."></p>
-        </body>
-      </html>
-    `;
 
     try {
       const response = await axios.post(
