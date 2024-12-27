@@ -13,15 +13,21 @@ import {
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast, Toaster } from "react-hot-toast";
-import SignatureCanvas from "react-signature-canvas";
+import SignatureCanvas, { SignatureCanvasRef } from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 import {
-  Tooltip as RadixTooltip,
-  TooltipContent as RadixTooltipContent,
-  TooltipProvider as RadixTooltipProvider,
-  TooltipTrigger as RadixTooltipTrigger,
-} from "@radix-ui/react-tooltip";
+  TooltipProviderCustom,
+  TooltipCustom,
+  TooltipTriggerCustom,
+  TooltipContentCustom,
+} from "../../components/TooltipComponents"; // Importação relativa
+
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import Label from "../../components/Label";
+import Textarea from "../../components/Textarea";
+import Checkbox from "../../components/Checkbox";
 
 // ----------------------------------------------------------------------------
 // 1) Definindo Schema de Validação com Zod (Todos os campos opcionais)
@@ -98,131 +104,7 @@ const initialChecklist = [
 type FormData = z.infer<typeof rootSchema>;
 
 // ----------------------------------------------------------------------------
-// 4) Componentes de UI Personalizados
-// ----------------------------------------------------------------------------
-
-// A. Button Component
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "ghost" | "destructive" | "outline";
-}
-
-const Button: React.FC<ButtonProps> = ({
-  variant = "default",
-  children,
-  className,
-  ...props
-}) => {
-  let variantClasses = "";
-  switch (variant) {
-    case "ghost":
-      variantClasses = "bg-transparent hover:bg-gray-100";
-      break;
-    case "destructive":
-      variantClasses = "bg-red-500 hover:bg-red-600";
-      break;
-    case "outline":
-      variantClasses = "bg-white border border-gray-300 hover:bg-gray-100";
-      break;
-    default:
-      variantClasses = "bg-blue-500 hover:bg-blue-600";
-  }
-
-  return (
-    <button
-      {...props}
-      className={`${variantClasses} text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300 ${className}`}
-    >
-      {children}
-    </button>
-  );
-};
-
-// B. Input Component
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
-
-const Input: React.FC<InputProps> = ({ className, ...props }) => {
-  return (
-    <input
-      {...props}
-      className={`border p-2 rounded w-full focus:outline-none focus:ring focus:border-blue-300 dark:bg-gray-700 dark:text-white ${className}`}
-    />
-  );
-};
-
-// C. Label Component
-interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {}
-
-const Label: React.FC<LabelProps> = ({
-  children,
-  className,
-  ...props
-}) => {
-  return (
-    <label
-      {...props}
-      className={`block text-sm font-medium text-gray-700 dark:text-gray-200 ${className}`}
-    >
-      {children}
-    </label>
-  );
-};
-
-// D. Textarea Component
-interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
-
-const Textarea: React.FC<TextareaProps> = ({ className, ...props }) => {
-  return (
-    <textarea
-      {...props}
-      className={`border p-2 rounded w-full focus:outline-none focus:ring focus:border-blue-300 dark:bg-gray-700 dark:text-white ${className}`}
-    />
-  );
-};
-
-// E. Checkbox Component
-interface CheckboxProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
-
-const Checkbox: React.FC<CheckboxProps> = ({
-  className,
-  ...props
-}) => {
-  return (
-    <input
-      type="checkbox"
-      {...props}
-      className={`h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ${className}`}
-    />
-  );
-};
-
-// F. Tooltip Components
-const TooltipProviderCustom: React.FC = ({ children }) => (
-  <RadixTooltipProvider>{children}</RadixTooltipProvider>
-);
-
-const TooltipCustom: React.FC = ({ children }) => (
-  <RadixTooltip>{children}</RadixTooltip>
-);
-
-const TooltipTriggerCustom: React.FC<{ asChild?: boolean }> = ({
-  children,
-  asChild = false,
-}) => (
-  <RadixTooltipTrigger asChild={asChild}>
-    {children}
-  </RadixTooltipTrigger>
-);
-
-const TooltipContentCustom: React.FC = ({ children }) => (
-  <RadixTooltipContent className="bg-gray-700 text-white p-2 rounded-md text-sm">
-    {children}
-  </RadixTooltipContent>
-);
-
-// ----------------------------------------------------------------------------
-// 5) Componentes de Etapas
+// 4) Componentes de Etapas
 // ----------------------------------------------------------------------------
 
 // Etapa 1: Informações Pessoais
@@ -336,9 +218,7 @@ const StepTwo: React.FC = () => {
     <div className="space-y-4">
       {/* Checklist de Segurança */}
       <div>
-        <Label className="font-semibold text-lg">
-          Checklist de Segurança
-        </Label>
+        <Label className="font-semibold text-lg">Checklist de Segurança</Label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded">
           <TooltipProviderCustom>
             {checklist &&
@@ -409,14 +289,12 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
-  const sigCanvasRef = useRef<SignatureCanvas>(null);
+  const sigCanvasRef = useRef<SignatureCanvasRef>(null);
 
   // Função para capturar assinatura
   const saveSignature = () => {
     if (sigCanvasRef.current) {
-      const signature = sigCanvasRef.current
-        .getTrimmedCanvas()
-        .toDataURL("image/png");
+      const signature = sigCanvasRef.current.getTrimmedCanvas().toDataURL("image/png");
       setValue("assinatura", signature, { shouldValidate: true });
     }
   };
@@ -586,7 +464,7 @@ const StepFour: React.FC = () => {
 };
 
 // ----------------------------------------------------------------------------
-// 6) Componente Principal (MultiStepForm)
+// 5) Componente Principal (MultiStepForm)
 // ----------------------------------------------------------------------------
 const MultiStepForm: React.FC = () => {
   // Passo atual
