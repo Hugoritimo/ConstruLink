@@ -1,4 +1,4 @@
-// pages/form/page.tsx
+// src/app/form/page.tsx
 
 "use client";
 
@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast, Toaster } from "react-hot-toast";
 import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
+import Image from "next/image";
 import {
   Tooltip as RadixTooltip,
   TooltipContent as RadixTooltipContent,
@@ -340,22 +341,23 @@ const StepTwo: React.FC = () => {
         </Label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded">
           <TooltipProviderCustom>
-            {checklist && checklist.map((item, index) => (
-              <TooltipCustom key={index}>
-                <TooltipTriggerCustom asChild>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={item.status}
-                      onChange={() => toggleItem(index)}
-                    />
-                    <Label className="cursor-pointer">{item.item}</Label>
-                  </div>
-                </TooltipTriggerCustom>
-                <TooltipContentCustom>
-                  {getTooltipContent(item.item)}
-                </TooltipContentCustom>
-              </TooltipCustom>
-            ))}
+            {checklist &&
+              checklist.map((item, index) => (
+                <TooltipCustom key={index}>
+                  <TooltipTriggerCustom asChild>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={item.status}
+                        onChange={() => toggleItem(index)}
+                      />
+                      <Label className="cursor-pointer">{item.item}</Label>
+                    </div>
+                  </TooltipTriggerCustom>
+                  <TooltipContentCustom>
+                    {getTooltipContent(item.item)}
+                  </TooltipContentCustom>
+                </TooltipCustom>
+              ))}
           </TooltipProviderCustom>
         </div>
         {errors.checklistSeguranca && (
@@ -434,7 +436,7 @@ const StepThree: React.FC = () => {
       {/* Mensagem Final */}
       <div>
         <Label htmlFor="mensagemFinal" className="font-semibold text-lg">
-          Descreva o que aconteceu no Dia
+          Mensagem Final / Considerações
         </Label>
         <TooltipProviderCustom>
           <TooltipCustom>
@@ -522,10 +524,12 @@ const StepFour: React.FC = () => {
   const renderSignature = () => {
     if (data.assinatura) {
       return (
-        <img
+        <Image
           src={data.assinatura}
           alt="Assinatura"
-          className="w-64 h-auto border p-2"
+          width={256}
+          height={100}
+          className="w-64 h-auto border p-2 object-contain"
         />
       );
     }
@@ -575,7 +579,7 @@ const StepFour: React.FC = () => {
       </div>
       <p className="text-gray-600">
         Revise todos os dados acima. Se precisar fazer alguma alteração, clique em
-        "Voltar".
+        &quot;Voltar&quot;.
       </p>
     </div>
   );
