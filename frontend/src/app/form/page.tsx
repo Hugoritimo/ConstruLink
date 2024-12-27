@@ -527,8 +527,8 @@ const StepFour: React.FC = () => {
         <Image
           src={data.assinatura}
           alt="Assinatura"
-          width={256}
-          height={100}
+          width={256} // Defina a largura desejada
+          height={100} // Defina a altura desejada
           className="w-64 h-auto border p-2 object-contain"
         />
       );
