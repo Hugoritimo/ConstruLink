@@ -15,10 +15,13 @@ import { toast, Toaster } from "react-hot-toast";
 import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
-import Button from "@/components/ui/button";
-import Input from "@/components/ui/input";
-import Label from "@/components/ui/label";
-import Textarea from "@/components/ui/textarea";
+
+// Importações ajustadas para components com named exports
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
 
 
 
