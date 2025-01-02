@@ -1,5 +1,3 @@
-// Exemplo: src/app/form/page.tsx
-
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
@@ -17,17 +15,13 @@ import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
-// Importando Button, Input, Label, Textarea como named exports
+// Importando com named exports
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// Removemos qualquer "type SignatureCanvasRef" e vamos só usar 'useRef(null)'
-
-// ------------------------------------------------------
-// 1) Schema Zod
-// ------------------------------------------------------
+// ------------- Schema Zod (todos opcionais) -------------
 const rootSchema = z.object({
   nomeCompleto: z
     .string()
@@ -52,7 +46,6 @@ const rootSchema = z.object({
     .or(z.literal("")),
 });
 
-// Estado inicial do checklist
 const initialChecklist = [
   { item: "EPI Adequado", status: false },
   { item: "Área Sinalizada", status: false },
@@ -62,14 +55,12 @@ const initialChecklist = [
   { item: "Extintores de Incêndio Disponíveis", status: false },
 ];
 
-// Tipagem do formulário
+// Tipagem do Formulário
 type FormData = z.infer<typeof rootSchema>;
 
-// ------------------------------------------------------
-// 2) Etapas (sem tipagens para SignatureCanvasRef)
-// ------------------------------------------------------
+// ------------- Steps (sem tooltip) -------------
 
-// Etapa 1
+// Step 1
 const StepOne: React.FC = () => {
   const {
     register,
@@ -119,7 +110,7 @@ const StepOne: React.FC = () => {
   );
 };
 
-// Etapa 2
+// Step 2
 const StepTwo: React.FC = () => {
   const {
     watch,
@@ -143,7 +134,6 @@ const StepTwo: React.FC = () => {
           {checklist &&
             checklist.map((item, index) => (
               <div key={index} className="flex items-center space-x-2">
-                {/* input checkbox simples */}
                 <input
                   type="checkbox"
                   checked={item.status}
@@ -184,7 +174,7 @@ const StepTwo: React.FC = () => {
   );
 };
 
-// Etapa 3 (Assinatura) - sem tipagem para o ref
+// Step 3 (Assinatura)
 const StepThree: React.FC = () => {
   const {
     register,
@@ -193,14 +183,10 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
-  // Note que não definimos tipo: useRef(null)
+  // Removendo tipagens, usando useRef(null)
   const sigCanvasRef = useRef(null);
 
-  // Capturar assinatura
   const saveSignature = () => {
-    // Aqui, se quiser chamar métodos, talvez precise de:
-    // (sigCanvasRef.current as any).getTrimmedCanvas()?.toDataURL()
-    // para não dar erro de TS, ou ignorar TS
     if (sigCanvasRef.current) {
       const signature = (sigCanvasRef.current as any)
         .getTrimmedCanvas()
@@ -209,7 +195,6 @@ const StepThree: React.FC = () => {
     }
   };
 
-  // Limpar assinatura
   const clearSignature = () => {
     if (sigCanvasRef.current) {
       (sigCanvasRef.current as any).clear();
@@ -261,10 +246,10 @@ const StepThree: React.FC = () => {
           />
         </div>
         <div className="flex space-x-2 mt-2">
-          <Button type="button" onClick={clearSignature} variant="outline">
+          <Button type="button" variant="outline" onClick={clearSignature}>
             Limpar Assinatura
           </Button>
-          <Button type="button" onClick={saveSignature} variant="default">
+          <Button type="button" variant="default" onClick={saveSignature}>
             Salvar Assinatura
           </Button>
         </div>
@@ -281,7 +266,7 @@ const StepThree: React.FC = () => {
   );
 };
 
-// Etapa 4
+// Step 4 (Revisão)
 const StepFour: React.FC = () => {
   const { getValues } = useFormContext<FormData>();
   const data = getValues();
@@ -350,13 +335,11 @@ const StepFour: React.FC = () => {
   );
 };
 
-// ------------------------------------------------------
-// 3) Componente Principal (MultiStepForm)
-// ------------------------------------------------------
-const MultiStepForm: React.FC = () => {
-  // Passo atual
+// ------------- Componente Principal MultiStepForm -------------
+export default function MultiStepForm() {
   const [currentStep, setCurrentStep] = useState(1);
 
+  // React Hook Form global
   const methods = useForm<FormData>({
     resolver: zodResolver(rootSchema),
     defaultValues: {
@@ -406,11 +389,9 @@ const MultiStepForm: React.FC = () => {
         },
         body: JSON.stringify(data),
       });
-
       if (!response.ok) {
         throw new Error("Erro ao enviar o formulário.");
       }
-
       console.log("Dados Finais: ", data);
       localStorage.removeItem(localStorageKey);
       toast.success("Formulário finalizado e dados enviados.");
@@ -433,9 +414,10 @@ const MultiStepForm: React.FC = () => {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          Formulário MultiStep (sem tipagens de SignatureCanvasRef)
+          Formulário MultiStep com Assinatura
         </motion.h1>
 
+        {/* Barra de Progresso */}
         <div className="w-full max-w-2xl mb-6">
           <div className="flex justify-between mb-2">
             <span className="text-sm text-gray-600">
@@ -504,6 +486,7 @@ const MultiStepForm: React.FC = () => {
             )}
           </AnimatePresence>
 
+          {/* Botões de Navegação */}
           <div className="flex justify-between mt-4">
             {currentStep > 1 && (
               <Button type="button" variant="outline" onClick={goBack}>
@@ -525,6 +508,4 @@ const MultiStepForm: React.FC = () => {
       </div>
     </FormProvider>
   );
-};
-
-export default MultiStepForm;
+}
