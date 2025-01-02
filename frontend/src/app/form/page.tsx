@@ -1,4 +1,5 @@
 // src/app/form/page.tsx
+
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
@@ -12,18 +13,18 @@ import {
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast, Toaster } from "react-hot-toast";
-import SignatureCanvas from "react-signature-canvas"; // <-- O sistema de assinatura
+import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
-// Corrigindo o import do Button e de outros componentes (named exports)
+// Importando Button, Input, Label, Textarea como named exports
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// Se preferir, você pode definir o tipo abaixo (ou usar no `useRef` diretamente):
-
+// Definindo o tipo para o ref do SignatureCanvas
+type SignatureCanvasRef = SignatureCanvas | null;
 
 // ----------------------------------------------------------------------------
 // 1) Schema Zod (todos os campos opcionais)
@@ -122,7 +123,6 @@ const StepOne: React.FC = () => {
 // Etapa 2
 const StepTwo: React.FC = () => {
   const {
-    register,
     watch,
     setValue,
     formState: { errors },
@@ -194,6 +194,7 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
+  // Usamos o tipo definido
   const sigCanvasRef = useRef<SignatureCanvasRef>(null);
 
   // Capturar assinatura
@@ -406,7 +407,6 @@ const MultiStepForm: React.FC = () => {
         },
         body: JSON.stringify(data),
       });
-
       if (!response.ok) {
         throw new Error("Erro ao enviar o formulário.");
       }
