@@ -2,12 +2,13 @@
 
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useForm,
   FormProvider,
   SubmitHandler,
+  useFormContext,
 } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,8 +23,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+// IMPORTANTE: importe aqui seus componentes Tooltip e Checkbox,
+// conforme estiverem definidos no seu projeto
 
+import { Checkbox } from "@/components/ui/checkbox";
 
+// Se você precisar de um tipo específico para o ref de SignatureCanvas:
 
 
 // ----------------------------------------------------------------------------
@@ -116,24 +121,22 @@ const StepOne: React.FC = () => {
       {/* Nome Completo */}
       <div>
         <Label htmlFor="nomeCompleto">Nome Completo</Label>
-        <TooltipProviderCustom>
-          <TooltipCustom>
-            <TooltipTriggerCustom asChild>
-              <Input
-                id="nomeCompleto"
-                {...register("nomeCompleto")}
-                placeholder="Seu nome"
-                className={`${
-                  errors.nomeCompleto ? "border-red-500" : "border-gray-300"
-                }`}
-                aria-invalid={errors.nomeCompleto ? "true" : "false"}
-              />
-            </TooltipTriggerCustom>
-            <TooltipContentCustom>
-              Insira seu nome completo conforme documento oficial.
-            </TooltipContentCustom>
-          </TooltipCustom>
-        </TooltipProviderCustom>
+        <TooltipCustom>
+          <TooltipTriggerCustom asChild>
+            <Input
+              id="nomeCompleto"
+              {...register("nomeCompleto")}
+              placeholder="Seu nome"
+              className={`${
+                errors.nomeCompleto ? "border-red-500" : "border-gray-300"
+              }`}
+              aria-invalid={errors.nomeCompleto ? "true" : "false"}
+            />
+          </TooltipTriggerCustom>
+          <TooltipContentCustom>
+            Insira seu nome completo conforme documento oficial.
+          </TooltipContentCustom>
+        </TooltipCustom>
         {errors.nomeCompleto && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
@@ -145,24 +148,22 @@ const StepOne: React.FC = () => {
       {/* Email */}
       <div>
         <Label htmlFor="email">Email</Label>
-        <TooltipProviderCustom>
-          <TooltipCustom>
-            <TooltipTriggerCustom asChild>
-              <Input
-                id="email"
-                {...register("email")}
-                placeholder="seuemail@exemplo.com"
-                className={`${
-                  errors.email ? "border-red-500" : "border-gray-300"
-                }`}
-                aria-invalid={errors.email ? "true" : "false"}
-              />
-            </TooltipTriggerCustom>
-            <TooltipContentCustom>
-              Insira um endereço de email válido para contato.
-            </TooltipContentCustom>
-          </TooltipCustom>
-        </TooltipProviderCustom>
+        <TooltipCustom>
+          <TooltipTriggerCustom asChild>
+            <Input
+              id="email"
+              {...register("email")}
+              placeholder="seuemail@exemplo.com"
+              className={`${
+                errors.email ? "border-red-500" : "border-gray-300"
+              }`}
+              aria-invalid={errors.email ? "true" : "false"}
+            />
+          </TooltipTriggerCustom>
+          <TooltipContentCustom>
+            Insira um endereço de email válido para contato.
+          </TooltipContentCustom>
+        </TooltipCustom>
         {errors.email && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
@@ -217,25 +218,23 @@ const StepTwo: React.FC = () => {
       <div>
         <Label className="font-semibold text-lg">Checklist de Segurança</Label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded">
-          <TooltipProviderCustom>
-            {checklist &&
-              checklist.map((item, index) => (
-                <TooltipCustom key={index}>
-                  <TooltipTriggerCustom asChild>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={item.status}
-                        onChange={() => toggleItem(index)}
-                      />
-                      <Label className="cursor-pointer">{item.item}</Label>
-                    </div>
-                  </TooltipTriggerCustom>
-                  <TooltipContentCustom>
-                    {getTooltipContent(item.item)}
-                  </TooltipContentCustom>
-                </TooltipCustom>
-              ))}
-          </TooltipProviderCustom>
+          {checklist &&
+            checklist.map((item, index) => (
+              <TooltipCustom key={index}>
+                <TooltipTriggerCustom asChild>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={item.status}
+                      onChange={() => toggleItem(index)}
+                    />
+                    <Label className="cursor-pointer">{item.item}</Label>
+                  </div>
+                </TooltipTriggerCustom>
+                <TooltipContentCustom>
+                  {getTooltipContent(item.item)}
+                </TooltipContentCustom>
+              </TooltipCustom>
+            ))}
         </div>
         {errors.checklistSeguranca && (
           <div className="flex items-center text-red-500 text-sm mt-1">
@@ -248,24 +247,22 @@ const StepTwo: React.FC = () => {
       {/* Observações */}
       <div>
         <Label htmlFor="observacoes">Observações</Label>
-        <TooltipProviderCustom>
-          <TooltipCustom>
-            <TooltipTriggerCustom asChild>
-              <Textarea
-                id="observacoes"
-                placeholder="Observações gerais..."
-                {...register("observacoes")}
-                className={`${
-                  errors.observacoes ? "border-red-500" : "border-gray-300"
-                }`}
-                aria-invalid={errors.observacoes ? "true" : "false"}
-              />
-            </TooltipTriggerCustom>
-            <TooltipContentCustom>
-              Adicione qualquer observação ou comentário adicional.
-            </TooltipContentCustom>
-          </TooltipCustom>
-        </TooltipProviderCustom>
+        <TooltipCustom>
+          <TooltipTriggerCustom asChild>
+            <Textarea
+              id="observacoes"
+              placeholder="Observações gerais..."
+              {...register("observacoes")}
+              className={`${
+                errors.observacoes ? "border-red-500" : "border-gray-300"
+              }`}
+              aria-invalid={errors.observacoes ? "true" : "false"}
+            />
+          </TooltipTriggerCustom>
+          <TooltipContentCustom>
+            Adicione qualquer observação ou comentário adicional.
+          </TooltipContentCustom>
+        </TooltipCustom>
         {errors.observacoes && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
@@ -286,12 +283,15 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
-  const sigCanvasRef = useRef<SignatureCanvasRef>(null);
+  // Use nosso tipo definido ou direto:
+  const sigCanvasRef = useRef<SignatureCanvas | null>(null);
 
   // Função para capturar assinatura
   const saveSignature = () => {
     if (sigCanvasRef.current) {
-      const signature = sigCanvasRef.current.getTrimmedCanvas().toDataURL("image/png");
+      const signature = sigCanvasRef.current
+        .getTrimmedCanvas()
+        .toDataURL("image/png");
       setValue("assinatura", signature, { shouldValidate: true });
     }
   };
@@ -313,24 +313,22 @@ const StepThree: React.FC = () => {
         <Label htmlFor="mensagemFinal" className="font-semibold text-lg">
           Mensagem Final / Considerações
         </Label>
-        <TooltipProviderCustom>
-          <TooltipCustom>
-            <TooltipTriggerCustom asChild>
-              <Textarea
-                id="mensagemFinal"
-                placeholder="Se quiser deixar uma mensagem final..."
-                {...register("mensagemFinal")}
-                className={`${
-                  errors.mensagemFinal ? "border-red-500" : "border-gray-300"
-                }`}
-                aria-invalid={errors.mensagemFinal ? "true" : "false"}
-              />
-            </TooltipTriggerCustom>
-            <TooltipContentCustom>
-              Adicione qualquer comentário ou consideração final.
-            </TooltipContentCustom>
-          </TooltipCustom>
-        </TooltipProviderCustom>
+        <TooltipCustom>
+          <TooltipTriggerCustom asChild>
+            <Textarea
+              id="mensagemFinal"
+              placeholder="Se quiser deixar uma mensagem final..."
+              {...register("mensagemFinal")}
+              className={`${
+                errors.mensagemFinal ? "border-red-500" : "border-gray-300"
+              }`}
+              aria-invalid={errors.mensagemFinal ? "true" : "false"}
+            />
+          </TooltipTriggerCustom>
+          <TooltipContentCustom>
+            Adicione qualquer comentário ou consideração final.
+          </TooltipContentCustom>
+        </TooltipCustom>
         {errors.mensagemFinal && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
@@ -344,27 +342,25 @@ const StepThree: React.FC = () => {
         <Label htmlFor="assinatura" className="font-semibold text-lg">
           Assinatura
         </Label>
-        <TooltipProviderCustom>
-          <TooltipCustom>
-            <TooltipTriggerCustom asChild>
-              <div className="border p-2 rounded-md">
-                <SignatureCanvas
-                  penColor="black"
-                  canvasProps={{
-                    width: 500,
-                    height: 200,
-                    className: "sigCanvas",
-                  }}
-                  ref={sigCanvasRef}
-                  onEnd={saveSignature}
-                />
-              </div>
-            </TooltipTriggerCustom>
-            <TooltipContentCustom>
-              Assine abaixo usando o mouse ou o touch.
-            </TooltipContentCustom>
-          </TooltipCustom>
-        </TooltipProviderCustom>
+        <TooltipCustom>
+          <TooltipTriggerCustom asChild>
+            <div className="border p-2 rounded-md">
+              <SignatureCanvas
+                penColor="black"
+                canvasProps={{
+                  width: 500,
+                  height: 200,
+                  className: "sigCanvas",
+                }}
+                ref={sigCanvasRef}
+                onEnd={saveSignature}
+              />
+            </div>
+          </TooltipTriggerCustom>
+          <TooltipContentCustom>
+            Assine abaixo usando o mouse ou o touch.
+          </TooltipContentCustom>
+        </TooltipCustom>
         <div className="flex space-x-2 mt-2">
           <Button type="button" onClick={clearSignature} variant="outline">
             Limpar Assinatura
@@ -380,11 +376,7 @@ const StepThree: React.FC = () => {
           </div>
         )}
         {/* Campo oculto para armazenar a assinatura em base64 */}
-        <input
-          type="hidden"
-          {...register("assinatura")}
-          value={assinatura}
-        />
+        <input type="hidden" {...register("assinatura")} value={assinatura} />
       </div>
     </div>
   );
@@ -402,8 +394,8 @@ const StepFour: React.FC = () => {
         <Image
           src={data.assinatura}
           alt="Assinatura"
-          width={256} // Defina a largura desejada
-          height={100} // Defina a altura desejada
+          width={256}
+          height={100}
           className="w-64 h-auto border p-2 object-contain"
         />
       );
@@ -453,8 +445,8 @@ const StepFour: React.FC = () => {
         </div>
       </div>
       <p className="text-gray-600">
-        Revise todos os dados acima. Se precisar fazer alguma alteração, clique em
-        &quot;Voltar&quot;.
+        Revise todos os dados acima. Se precisar fazer alguma alteração, clique
+        em &quot;Voltar&quot;.
       </p>
     </div>
   );
@@ -478,10 +470,10 @@ const MultiStepForm: React.FC = () => {
       mensagemFinal: "",
       assinatura: "",
     },
-    mode: "onBlur", // Valida ao sair do campo. Pode ser "onChange"
+    mode: "onBlur", // Valida ao sair do campo. Pode ser "onChange" ou "onSubmit"
   });
 
-  const { watch, setValue, handleSubmit, formState } = methods;
+  const { watch, setValue, handleSubmit } = methods;
 
   // ----------------------------------------------------------------------------
   // Auto-Save no Local Storage
