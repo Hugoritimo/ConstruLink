@@ -11,8 +11,7 @@ import {
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast, Toaster } from "react-hot-toast";
-// IMPORTANTE: note que aqui importamos **ReactSignatureCanvas** (tipo) junto com o componente
-import SignatureCanvas, { ReactSignatureCanvas } from "react-signature-canvas";
+import SignatureCanvas, { SignatureCanvasRef } from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
@@ -180,8 +179,8 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
-  // Agora, usando o tipo `ReactSignatureCanvas` no useRef:
-  const sigCanvasRef = useRef<ReactSignatureCanvas | null>(null);
+  // Agora, usando o tipo `SignatureCanvasRef` para o ref:
+  const sigCanvasRef = useRef<SignatureCanvasRef | null>(null);
 
   const saveSignature = () => {
     if (sigCanvasRef.current) {
