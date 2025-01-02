@@ -13,21 +13,19 @@ import {
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast, Toaster } from "react-hot-toast";
-import SignatureCanvas, { SignatureCanvasRef } from "react-signature-canvas";
+import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
-import {
-  TooltipProviderCustom,
-  TooltipCustom,
-  TooltipTriggerCustom,
-  TooltipContentCustom,
-} from "../../components/TooltipComponents"; // Importação relativa
+import TooltipProviderCustom from "@/components/TooltipComponents/TooltipProviderCustom";
+import TooltipCustom from "@/components/TooltipComponents/TooltipCustom";
+import TooltipTriggerCustom from "@/components/TooltipComponents/TooltipTriggerCustom";
+import TooltipContentCustom from "@/components/TooltipComponents/TooltipContentCustom";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Label from "@/components/ui/Label";
+import Textarea from "@/components/ui/Textarea";
 
-import Button from "../../components/Button";
-import Input from "../../components/Input";
-import Label from "../../components/Label";
-import Textarea from "../../components/Textarea";
-import Checkbox from "../../components/Checkbox";
+
 
 // ----------------------------------------------------------------------------
 // 1) Definindo Schema de Validação com Zod (Todos os campos opcionais)
