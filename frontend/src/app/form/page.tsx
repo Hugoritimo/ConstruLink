@@ -15,9 +15,7 @@ import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
-// Importe aqui seus componentes de UI. 
-// Certifique-se de que "Button", "Input", "Label" e "Textarea" 
-// são exported *named* nos arquivos e importados assim:
+// Importe seus componentes de UI (named exports):
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,7 +56,6 @@ type FormData = z.infer<typeof rootSchema>;
 
 // ------------- Step 1 -------------
 const StepOne: React.FC = () => {
-  // Desestruture register e errors do context
   const {
     register,
     formState: { errors },
@@ -144,7 +141,10 @@ const StepTwo: React.FC = () => {
         {errors.checklistSeguranca && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
-            {/* Caso queira mensagem própria, use: {errors.checklistSeguranca.message} */}
+            {/*
+               Caso queira mensagem própria, use:
+               {errors.checklistSeguranca.message}
+            */}
             Há algum problema no Checklist de Segurança.
           </div>
         )}
@@ -182,7 +182,8 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
-  const sigCanvasRef = useRef<SignatureCanvas | null>(null);
+  // A correção está aqui, usando InstanceType para tipar o useRef
+  const sigCanvasRef = useRef<InstanceType<typeof SignatureCanvas> | null>(null);
 
   const saveSignature = () => {
     if (sigCanvasRef.current) {
@@ -357,7 +358,7 @@ export default function MultiStepForm() {
   const localStorageKey = "multistepFormData";
 
   useEffect(() => {
-    // Carrega dados do localStorage
+    // Carrega dados do localStorage, se existirem
     const saved = localStorage.getItem(localStorageKey);
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -371,6 +372,7 @@ export default function MultiStepForm() {
   }, []);
 
   useEffect(() => {
+    // Salva sempre que `formValues` mudar
     localStorage.setItem(localStorageKey, JSON.stringify(formValues));
   }, [formValues]);
 
