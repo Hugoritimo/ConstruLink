@@ -1,7 +1,7 @@
 "use client";
 import axios from "axios";
 import { useState } from "react";
-import Button from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 const AddUser = () => {
