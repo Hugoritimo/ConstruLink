@@ -15,20 +15,21 @@ import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
-// Importando com named exports
+// Importando com named exports (exemplo de como importar componentes de UI)
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// ------------- Schema Zod (todos opcionais) -------------
+// ------------- Schema Zod -------------
+// Removemos o .or(z.literal("")) pois `optional()` já permite string vazia ou undefined.
+// Caso queira garantir um campo não vazio, retire `optional()` e ajuste conforme necessidade.
 const rootSchema = z.object({
   nomeCompleto: z
     .string()
     .min(3, "Seu nome deve ter ao menos 3 letras.")
-    .optional()
-    .or(z.literal("")),
-  email: z.string().email("Email inválido.").optional().or(z.literal("")),
+    .optional(),
+  email: z.string().email("Email inválido.").optional(),
   checklistSeguranca: z
     .array(
       z.object({
@@ -42,10 +43,10 @@ const rootSchema = z.object({
   assinatura: z
     .string()
     .min(10, "Por favor, assine o formulário.")
-    .optional()
-    .or(z.literal("")),
+    .optional(),
 });
 
+// Checklist inicial
 const initialChecklist = [
   { item: "EPI Adequado", status: false },
   { item: "Área Sinalizada", status: false },
@@ -58,9 +59,7 @@ const initialChecklist = [
 // Tipagem do Formulário
 type FormData = z.infer<typeof rootSchema>;
 
-// ------------- Steps (sem tooltip) -------------
-
-// Step 1
+// ------------- Step 1 -------------
 const StepOne: React.FC = () => {
   const {
     register,
@@ -110,7 +109,7 @@ const StepOne: React.FC = () => {
   );
 };
 
-// Step 2
+// ------------- Step 2 -------------
 const StepTwo: React.FC = () => {
   const {
     watch,
@@ -131,22 +130,24 @@ const StepTwo: React.FC = () => {
       <div>
         <Label className="font-semibold text-lg">Checklist de Segurança</Label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded">
-          {checklist &&
-            checklist.map((item, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={item.status}
-                  onChange={() => toggleItem(index)}
-                />
-                <Label className="cursor-pointer">{item.item}</Label>
-              </div>
-            ))}
+          {checklist?.map((item, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={item.status}
+                onChange={() => toggleItem(index)}
+              />
+              <Label className="cursor-pointer">{item.item}</Label>
+            </div>
+          ))}
         </div>
         {errors.checklistSeguranca && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
-            {errors.checklistSeguranca.message}
+            {/* Caso queira mensagem própria, pode customizar:
+                {errors.checklistSeguranca.message}
+            */}
+            Há algum problema no Checklist de Segurança.
           </div>
         )}
       </div>
@@ -174,7 +175,7 @@ const StepTwo: React.FC = () => {
   );
 };
 
-// Step 3 (Assinatura)
+// ------------- Step 3 (Assinatura) -------------
 const StepThree: React.FC = () => {
   const {
     register,
@@ -183,12 +184,11 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
-  // Removendo tipagens, usando useRef(null)
-  const sigCanvasRef = useRef(null);
+  const sigCanvasRef = useRef<SignatureCanvas | null>(null);
 
   const saveSignature = () => {
     if (sigCanvasRef.current) {
-      const signature = (sigCanvasRef.current as any)
+      const signature = sigCanvasRef.current
         .getTrimmedCanvas()
         .toDataURL("image/png");
       setValue("assinatura", signature, { shouldValidate: true });
@@ -197,7 +197,7 @@ const StepThree: React.FC = () => {
 
   const clearSignature = () => {
     if (sigCanvasRef.current) {
-      (sigCanvasRef.current as any).clear();
+      sigCanvasRef.current.clear();
       setValue("assinatura", "", { shouldValidate: true });
     }
   };
@@ -266,7 +266,7 @@ const StepThree: React.FC = () => {
   );
 };
 
-// Step 4 (Revisão)
+// ------------- Step 4 (Revisão) -------------
 const StepFour: React.FC = () => {
   const { getValues } = useFormContext<FormData>();
   const data = getValues();
@@ -335,7 +335,7 @@ const StepFour: React.FC = () => {
   );
 };
 
-// ------------- Componente Principal MultiStepForm -------------
+// ------------- Componente Principal -------------
 export default function MultiStepForm() {
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -360,18 +360,22 @@ export default function MultiStepForm() {
   const localStorageKey = "multistepFormData";
 
   useEffect(() => {
+    // Carrega dados do localStorage, se existirem
     const saved = localStorage.getItem(localStorageKey);
     if (saved) {
       const parsed = JSON.parse(saved);
-      Object.keys(parsed).forEach((field: string) => {
+      // Atualiza cada campo do formulário com o valor salvo
+      Object.keys(parsed).forEach((field) => {
         setValue(field as keyof FormData, parsed[field], {
           shouldValidate: false,
         });
       });
     }
-  }, [setValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
+    // Salva sempre que `formValues` mudar
     localStorage.setItem(localStorageKey, JSON.stringify(formValues));
   }, [formValues]);
 
@@ -393,7 +397,7 @@ export default function MultiStepForm() {
         throw new Error("Erro ao enviar o formulário.");
       }
       console.log("Dados Finais: ", data);
-      localStorage.removeItem(localStorageKey);
+      localStorage.removeItem(localStorageKey); // Limpa localStorage
       toast.success("Formulário finalizado e dados enviados.");
     } catch (error) {
       console.error(error);
