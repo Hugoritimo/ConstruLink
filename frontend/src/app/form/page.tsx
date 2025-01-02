@@ -11,7 +11,8 @@ import {
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast, Toaster } from "react-hot-toast";
-import SignatureCanvas from "react-signature-canvas";
+// IMPORTANTE: note que aqui importamos **ReactSignatureCanvas** (tipo) junto com o componente
+import SignatureCanvas, { ReactSignatureCanvas } from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
@@ -21,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// ------------- Schema Zod -------------
+// ------------- SCHEMA ZOD -------------
 const rootSchema = z.object({
   nomeCompleto: z
     .string()
@@ -41,7 +42,7 @@ const rootSchema = z.object({
   assinatura: z.string().min(10, "Por favor, assine o formulário.").optional(),
 });
 
-// ------------- Dados iniciais -------------
+// ------------- DADOS INICIAIS -------------
 const initialChecklist = [
   { item: "EPI Adequado", status: false },
   { item: "Área Sinalizada", status: false },
@@ -54,7 +55,7 @@ const initialChecklist = [
 // Tipagem do Formulário
 type FormData = z.infer<typeof rootSchema>;
 
-// ------------- Step 1 -------------
+// ------------- STEP 1 -------------
 const StepOne: React.FC = () => {
   const {
     register,
@@ -104,7 +105,7 @@ const StepOne: React.FC = () => {
   );
 };
 
-// ------------- Step 2 -------------
+// ------------- STEP 2 -------------
 const StepTwo: React.FC = () => {
   const {
     watch,
@@ -141,10 +142,7 @@ const StepTwo: React.FC = () => {
         {errors.checklistSeguranca && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
-            {/*
-               Caso queira mensagem própria, use:
-               {errors.checklistSeguranca.message}
-            */}
+            {/* Caso queira mensagem própria, use {errors.checklistSeguranca.message} */}
             Há algum problema no Checklist de Segurança.
           </div>
         )}
@@ -173,7 +171,7 @@ const StepTwo: React.FC = () => {
   );
 };
 
-// ------------- Step 3 (Assinatura) -------------
+// ------------- STEP 3 (Assinatura) -------------
 const StepThree: React.FC = () => {
   const {
     register,
@@ -182,8 +180,8 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
-  // A correção está aqui, usando InstanceType para tipar o useRef
-  const sigCanvasRef = useRef<InstanceType<typeof SignatureCanvas> | null>(null);
+  // Agora, usando o tipo `ReactSignatureCanvas` no useRef:
+  const sigCanvasRef = useRef<ReactSignatureCanvas | null>(null);
 
   const saveSignature = () => {
     if (sigCanvasRef.current) {
@@ -265,7 +263,7 @@ const StepThree: React.FC = () => {
   );
 };
 
-// ------------- Step 4 (Revisão) -------------
+// ------------- STEP 4 (Revisão) -------------
 const StepFour: React.FC = () => {
   const { getValues } = useFormContext<FormData>();
   const data = getValues();
@@ -334,9 +332,9 @@ const StepFour: React.FC = () => {
   );
 };
 
-// ------------- Componente Principal -------------
+// ------------- COMPONENTE PRINCIPAL -------------
 export default function MultiStepForm() {
-  // Configuração do React Hook Form com Zod
+  // React Hook Form + Zod
   const methods = useForm<FormData>({
     resolver: zodResolver(rootSchema),
     defaultValues: {
@@ -376,11 +374,11 @@ export default function MultiStepForm() {
     localStorage.setItem(localStorageKey, JSON.stringify(formValues));
   }, [formValues]);
 
-  // Avançar e Voltar steps
+  // Avançar / Voltar steps
   const goNext = () => setCurrentStep((prev) => prev + 1);
   const goBack = () => setCurrentStep((prev) => prev - 1);
 
-  // Envio final
+  // Submeter no final
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
       const response = await fetch("/api/submit-form", {
@@ -436,6 +434,7 @@ export default function MultiStepForm() {
           </div>
         </div>
 
+        {/* Form */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="w-full max-w-2xl bg-white p-4 md:p-8 rounded-lg shadow space-y-6"
