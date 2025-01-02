@@ -1,4 +1,4 @@
-// src/app/form/page.tsx
+// Exemplo: src/app/form/page.tsx
 
 "use client";
 
@@ -23,12 +23,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// Definindo o tipo para o ref do SignatureCanvas
-type SignatureCanvasRef = SignatureCanvas | null;
+// Removemos qualquer "type SignatureCanvasRef" e vamos só usar 'useRef(null)'
 
-// ----------------------------------------------------------------------------
-// 1) Schema Zod (todos os campos opcionais)
-// ----------------------------------------------------------------------------
+// ------------------------------------------------------
+// 1) Schema Zod
+// ------------------------------------------------------
 const rootSchema = z.object({
   nomeCompleto: z
     .string()
@@ -63,12 +62,12 @@ const initialChecklist = [
   { item: "Extintores de Incêndio Disponíveis", status: false },
 ];
 
-// Tipagem do Formulário
+// Tipagem do formulário
 type FormData = z.infer<typeof rootSchema>;
 
-// ----------------------------------------------------------------------------
-// Etapas (sem tooltips)
-// ----------------------------------------------------------------------------
+// ------------------------------------------------------
+// 2) Etapas (sem tipagens para SignatureCanvasRef)
+// ------------------------------------------------------
 
 // Etapa 1
 const StepOne: React.FC = () => {
@@ -144,7 +143,7 @@ const StepTwo: React.FC = () => {
           {checklist &&
             checklist.map((item, index) => (
               <div key={index} className="flex items-center space-x-2">
-                {/* Exemplo de Checkbox, ajuste se necessário */}
+                {/* input checkbox simples */}
                 <input
                   type="checkbox"
                   checked={item.status}
@@ -185,7 +184,7 @@ const StepTwo: React.FC = () => {
   );
 };
 
-// Etapa 3
+// Etapa 3 (Assinatura) - sem tipagem para o ref
 const StepThree: React.FC = () => {
   const {
     register,
@@ -194,13 +193,16 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
-  // Usamos o tipo definido
-  const sigCanvasRef = useRef<SignatureCanvasRef>(null);
+  // Note que não definimos tipo: useRef(null)
+  const sigCanvasRef = useRef(null);
 
   // Capturar assinatura
   const saveSignature = () => {
+    // Aqui, se quiser chamar métodos, talvez precise de:
+    // (sigCanvasRef.current as any).getTrimmedCanvas()?.toDataURL()
+    // para não dar erro de TS, ou ignorar TS
     if (sigCanvasRef.current) {
-      const signature = sigCanvasRef.current
+      const signature = (sigCanvasRef.current as any)
         .getTrimmedCanvas()
         .toDataURL("image/png");
       setValue("assinatura", signature, { shouldValidate: true });
@@ -210,7 +212,7 @@ const StepThree: React.FC = () => {
   // Limpar assinatura
   const clearSignature = () => {
     if (sigCanvasRef.current) {
-      sigCanvasRef.current.clear();
+      (sigCanvasRef.current as any).clear();
       setValue("assinatura", "", { shouldValidate: true });
     }
   };
@@ -348,9 +350,9 @@ const StepFour: React.FC = () => {
   );
 };
 
-// ----------------------------------------------------------------------------
-// 5) Componente Principal (MultiStepForm)
-// ----------------------------------------------------------------------------
+// ------------------------------------------------------
+// 3) Componente Principal (MultiStepForm)
+// ------------------------------------------------------
 const MultiStepForm: React.FC = () => {
   // Passo atual
   const [currentStep, setCurrentStep] = useState(1);
@@ -374,12 +376,10 @@ const MultiStepForm: React.FC = () => {
   const formValues = watch();
   const localStorageKey = "multistepFormData";
 
-  // Carrega do localStorage ao montar
   useEffect(() => {
     const saved = localStorage.getItem(localStorageKey);
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Setamos cada campo do form:
       Object.keys(parsed).forEach((field: string) => {
         setValue(field as keyof FormData, parsed[field], {
           shouldValidate: false,
@@ -388,7 +388,6 @@ const MultiStepForm: React.FC = () => {
     }
   }, [setValue]);
 
-  // Salva no localStorage a cada mudança
   useEffect(() => {
     localStorage.setItem(localStorageKey, JSON.stringify(formValues));
   }, [formValues]);
@@ -407,11 +406,11 @@ const MultiStepForm: React.FC = () => {
         },
         body: JSON.stringify(data),
       });
+
       if (!response.ok) {
         throw new Error("Erro ao enviar o formulário.");
       }
 
-      // Sucesso
       console.log("Dados Finais: ", data);
       localStorage.removeItem(localStorageKey);
       toast.success("Formulário finalizado e dados enviados.");
@@ -421,7 +420,6 @@ const MultiStepForm: React.FC = () => {
     }
   };
 
-  // Barra de Progresso
   const totalSteps = 4;
   const progressPercent = Math.round((currentStep / totalSteps) * 100);
 
@@ -435,10 +433,9 @@ const MultiStepForm: React.FC = () => {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          Formulário MultiStep com Validação, AutoSave (sem Tooltips)
+          Formulário MultiStep (sem tipagens de SignatureCanvasRef)
         </motion.h1>
 
-        {/* Barra de Progresso */}
         <div className="w-full max-w-2xl mb-6">
           <div className="flex justify-between mb-2">
             <span className="text-sm text-gray-600">
@@ -507,30 +504,19 @@ const MultiStepForm: React.FC = () => {
             )}
           </AnimatePresence>
 
-          {/* Botões de Navegação */}
           <div className="flex justify-between mt-4">
             {currentStep > 1 && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={goBack}
-                className="mr-2"
-              >
+              <Button type="button" variant="outline" onClick={goBack}>
                 Voltar
               </Button>
             )}
             {currentStep < totalSteps && (
-              <Button
-                type="button"
-                variant="default"
-                onClick={goNext}
-                className="ml-auto"
-              >
+              <Button type="button" variant="default" onClick={goNext}>
                 Próximo
               </Button>
             )}
             {currentStep === totalSteps && (
-              <Button type="submit" variant="destructive" className="ml-auto">
+              <Button type="submit" variant="destructive">
                 Finalizar
               </Button>
             )}
