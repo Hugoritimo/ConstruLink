@@ -1,5 +1,4 @@
 // src/app/form/page.tsx
-
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
@@ -13,20 +12,18 @@ import {
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast, Toaster } from "react-hot-toast";
-import SignatureCanvas from "react-signature-canvas";
+import SignatureCanvas from "react-signature-canvas"; // <-- O sistema de assinatura
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
-// Importar Button, Input, Label, Textarea como "named exports"
-import { Button } from "@/components/ui/button"; // <-- Corrigido
+// Corrigindo o import do Button e de outros componentes (named exports)
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// Removido import de tooltips
-// import { TooltipCustom, TooltipTriggerCustom, TooltipContentCustom } from "@/components/ui/tooltip";
+// Se preferir, você pode definir o tipo abaixo (ou usar no `useRef` diretamente):
 
-// Se você precisar de um tipo específico para o ref de SignatureCanvas:
 
 // ----------------------------------------------------------------------------
 // 1) Schema Zod (todos os campos opcionais)
