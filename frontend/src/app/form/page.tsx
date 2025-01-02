@@ -17,53 +17,20 @@ import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
-// Importações ajustadas para components com named exports
-import { Button } from "@/components/ui/button";
+// Importar Button, Input, Label, Textarea como "named exports"
+import { Button } from "@/components/ui/button"; // <-- Corrigido
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// IMPORTANTE: importe aqui seus componentes Tooltip e Checkbox,
-// conforme estiverem definidos no seu projeto
-
-import { Checkbox } from "@/components/ui/checkbox";
+// Removido import de tooltips
+// import { TooltipCustom, TooltipTriggerCustom, TooltipContentCustom } from "@/components/ui/tooltip";
 
 // Se você precisar de um tipo específico para o ref de SignatureCanvas:
 
-
 // ----------------------------------------------------------------------------
-// 1) Definindo Schema de Validação com Zod (Todos os campos opcionais)
+// 1) Schema Zod (todos os campos opcionais)
 // ----------------------------------------------------------------------------
-const stepOneSchema = z.object({
-  nomeCompleto: z
-    .string()
-    .min(3, "Seu nome deve ter ao menos 3 letras.")
-    .optional()
-    .or(z.literal("")), // Permite campo vazio
-  email: z.string().email("Email inválido.").optional().or(z.literal("")),
-});
-
-const stepTwoSchema = z.object({
-  checklistSeguranca: z
-    .array(
-      z.object({
-        item: z.string(),
-        status: z.boolean(),
-      })
-    )
-    .optional(),
-  observacoes: z.string().optional(),
-});
-
-const stepThreeSchema = z.object({
-  mensagemFinal: z.string().optional(),
-  assinatura: z
-    .string()
-    .min(10, "Por favor, assine o formulário.")
-    .optional()
-    .or(z.literal("")),
-});
-
 const rootSchema = z.object({
   nomeCompleto: z
     .string()
@@ -88,9 +55,7 @@ const rootSchema = z.object({
     .or(z.literal("")),
 });
 
-// ----------------------------------------------------------------------------
-// 2) Estado inicial do checklist
-// ----------------------------------------------------------------------------
+// Estado inicial do checklist
 const initialChecklist = [
   { item: "EPI Adequado", status: false },
   { item: "Área Sinalizada", status: false },
@@ -100,16 +65,14 @@ const initialChecklist = [
   { item: "Extintores de Incêndio Disponíveis", status: false },
 ];
 
-// ----------------------------------------------------------------------------
-// 3) Hook para Tipagem do Formulário
-// ----------------------------------------------------------------------------
+// Tipagem do Formulário
 type FormData = z.infer<typeof rootSchema>;
 
 // ----------------------------------------------------------------------------
-// 4) Componentes de Etapas
+// Etapas (sem tooltips)
 // ----------------------------------------------------------------------------
 
-// Etapa 1: Informações Pessoais
+// Etapa 1
 const StepOne: React.FC = () => {
   const {
     register,
@@ -121,22 +84,15 @@ const StepOne: React.FC = () => {
       {/* Nome Completo */}
       <div>
         <Label htmlFor="nomeCompleto">Nome Completo</Label>
-        <TooltipCustom>
-          <TooltipTriggerCustom asChild>
-            <Input
-              id="nomeCompleto"
-              {...register("nomeCompleto")}
-              placeholder="Seu nome"
-              className={`${
-                errors.nomeCompleto ? "border-red-500" : "border-gray-300"
-              }`}
-              aria-invalid={errors.nomeCompleto ? "true" : "false"}
-            />
-          </TooltipTriggerCustom>
-          <TooltipContentCustom>
-            Insira seu nome completo conforme documento oficial.
-          </TooltipContentCustom>
-        </TooltipCustom>
+        <Input
+          id="nomeCompleto"
+          {...register("nomeCompleto")}
+          placeholder="Seu nome"
+          className={`${
+            errors.nomeCompleto ? "border-red-500" : "border-gray-300"
+          }`}
+          aria-invalid={errors.nomeCompleto ? "true" : "false"}
+        />
         {errors.nomeCompleto && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
@@ -148,22 +104,13 @@ const StepOne: React.FC = () => {
       {/* Email */}
       <div>
         <Label htmlFor="email">Email</Label>
-        <TooltipCustom>
-          <TooltipTriggerCustom asChild>
-            <Input
-              id="email"
-              {...register("email")}
-              placeholder="seuemail@exemplo.com"
-              className={`${
-                errors.email ? "border-red-500" : "border-gray-300"
-              }`}
-              aria-invalid={errors.email ? "true" : "false"}
-            />
-          </TooltipTriggerCustom>
-          <TooltipContentCustom>
-            Insira um endereço de email válido para contato.
-          </TooltipContentCustom>
-        </TooltipCustom>
+        <Input
+          id="email"
+          {...register("email")}
+          placeholder="seuemail@exemplo.com"
+          className={`${errors.email ? "border-red-500" : "border-gray-300"}`}
+          aria-invalid={errors.email ? "true" : "false"}
+        />
         {errors.email && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
@@ -175,7 +122,7 @@ const StepOne: React.FC = () => {
   );
 };
 
-// Etapa 2: Checklist de Segurança e Observações
+// Etapa 2
 const StepTwo: React.FC = () => {
   const {
     register,
@@ -185,31 +132,10 @@ const StepTwo: React.FC = () => {
   } = useFormContext<FormData>();
   const checklist = watch("checklistSeguranca");
 
-  // Função para alternar o status do item do checklist
   const toggleItem = (index: number) => {
     const newList = [...(checklist || [])];
     newList[index].status = !newList[index].status;
     setValue("checklistSeguranca", newList, { shouldDirty: true });
-  };
-
-  // Função para retornar o conteúdo do tooltip com base no item
-  const getTooltipContent = (item: string): string => {
-    switch (item) {
-      case "EPI Adequado":
-        return "Verifique se todos os Equipamentos de Proteção Individual estão disponíveis e em boas condições.";
-      case "Área Sinalizada":
-        return "As áreas de trabalho estão devidamente sinalizadas para garantir a segurança.";
-      case "Treinamento Atualizado":
-        return "Certifique-se de que todos os funcionários receberam treinamentos atualizados.";
-      case "Equipamentos Revisados":
-        return "Todos os equipamentos foram revisados recentemente e estão operando corretamente.";
-      case "Sistemas de Ventilação Funcionando":
-        return "Os sistemas de ventilação estão operando eficientemente para garantir um ambiente saudável.";
-      case "Extintores de Incêndio Disponíveis":
-        return "Extintores de incêndio estão disponíveis e acessíveis em todas as áreas.";
-      default:
-        return "";
-    }
   };
 
   return (
@@ -220,20 +146,15 @@ const StepTwo: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded">
           {checklist &&
             checklist.map((item, index) => (
-              <TooltipCustom key={index}>
-                <TooltipTriggerCustom asChild>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={item.status}
-                      onChange={() => toggleItem(index)}
-                    />
-                    <Label className="cursor-pointer">{item.item}</Label>
-                  </div>
-                </TooltipTriggerCustom>
-                <TooltipContentCustom>
-                  {getTooltipContent(item.item)}
-                </TooltipContentCustom>
-              </TooltipCustom>
+              <div key={index} className="flex items-center space-x-2">
+                {/* Exemplo de Checkbox, ajuste se necessário */}
+                <input
+                  type="checkbox"
+                  checked={item.status}
+                  onChange={() => toggleItem(index)}
+                />
+                <Label className="cursor-pointer">{item.item}</Label>
+              </div>
             ))}
         </div>
         {errors.checklistSeguranca && (
@@ -247,22 +168,15 @@ const StepTwo: React.FC = () => {
       {/* Observações */}
       <div>
         <Label htmlFor="observacoes">Observações</Label>
-        <TooltipCustom>
-          <TooltipTriggerCustom asChild>
-            <Textarea
-              id="observacoes"
-              placeholder="Observações gerais..."
-              {...register("observacoes")}
-              className={`${
-                errors.observacoes ? "border-red-500" : "border-gray-300"
-              }`}
-              aria-invalid={errors.observacoes ? "true" : "false"}
-            />
-          </TooltipTriggerCustom>
-          <TooltipContentCustom>
-            Adicione qualquer observação ou comentário adicional.
-          </TooltipContentCustom>
-        </TooltipCustom>
+        <Textarea
+          id="observacoes"
+          placeholder="Observações gerais..."
+          {...register("observacoes")}
+          className={`${
+            errors.observacoes ? "border-red-500" : "border-gray-300"
+          }`}
+          aria-invalid={errors.observacoes ? "true" : "false"}
+        />
         {errors.observacoes && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
@@ -274,7 +188,7 @@ const StepTwo: React.FC = () => {
   );
 };
 
-// Etapa 3: Mensagem Final / Considerações e Assinatura
+// Etapa 3
 const StepThree: React.FC = () => {
   const {
     register,
@@ -283,10 +197,9 @@ const StepThree: React.FC = () => {
     watch,
   } = useFormContext<FormData>();
 
-  // Use nosso tipo definido ou direto:
-  const sigCanvasRef = useRef<SignatureCanvas | null>(null);
+  const sigCanvasRef = useRef<SignatureCanvasRef>(null);
 
-  // Função para capturar assinatura
+  // Capturar assinatura
   const saveSignature = () => {
     if (sigCanvasRef.current) {
       const signature = sigCanvasRef.current
@@ -296,7 +209,7 @@ const StepThree: React.FC = () => {
     }
   };
 
-  // Função para limpar a assinatura
+  // Limpar assinatura
   const clearSignature = () => {
     if (sigCanvasRef.current) {
       sigCanvasRef.current.clear();
@@ -313,22 +226,15 @@ const StepThree: React.FC = () => {
         <Label htmlFor="mensagemFinal" className="font-semibold text-lg">
           Mensagem Final / Considerações
         </Label>
-        <TooltipCustom>
-          <TooltipTriggerCustom asChild>
-            <Textarea
-              id="mensagemFinal"
-              placeholder="Se quiser deixar uma mensagem final..."
-              {...register("mensagemFinal")}
-              className={`${
-                errors.mensagemFinal ? "border-red-500" : "border-gray-300"
-              }`}
-              aria-invalid={errors.mensagemFinal ? "true" : "false"}
-            />
-          </TooltipTriggerCustom>
-          <TooltipContentCustom>
-            Adicione qualquer comentário ou consideração final.
-          </TooltipContentCustom>
-        </TooltipCustom>
+        <Textarea
+          id="mensagemFinal"
+          placeholder="Se quiser deixar uma mensagem final..."
+          {...register("mensagemFinal")}
+          className={`${
+            errors.mensagemFinal ? "border-red-500" : "border-gray-300"
+          }`}
+          aria-invalid={errors.mensagemFinal ? "true" : "false"}
+        />
         {errors.mensagemFinal && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
@@ -342,25 +248,18 @@ const StepThree: React.FC = () => {
         <Label htmlFor="assinatura" className="font-semibold text-lg">
           Assinatura
         </Label>
-        <TooltipCustom>
-          <TooltipTriggerCustom asChild>
-            <div className="border p-2 rounded-md">
-              <SignatureCanvas
-                penColor="black"
-                canvasProps={{
-                  width: 500,
-                  height: 200,
-                  className: "sigCanvas",
-                }}
-                ref={sigCanvasRef}
-                onEnd={saveSignature}
-              />
-            </div>
-          </TooltipTriggerCustom>
-          <TooltipContentCustom>
-            Assine abaixo usando o mouse ou o touch.
-          </TooltipContentCustom>
-        </TooltipCustom>
+        <div className="border p-2 rounded-md">
+          <SignatureCanvas
+            penColor="black"
+            canvasProps={{
+              width: 500,
+              height: 200,
+              className: "sigCanvas",
+            }}
+            ref={sigCanvasRef}
+            onEnd={saveSignature}
+          />
+        </div>
         <div className="flex space-x-2 mt-2">
           <Button type="button" onClick={clearSignature} variant="outline">
             Limpar Assinatura
@@ -382,12 +281,11 @@ const StepThree: React.FC = () => {
   );
 };
 
-// Etapa 4: Revisão dos Dados
+// Etapa 4
 const StepFour: React.FC = () => {
   const { getValues } = useFormContext<FormData>();
   const data = getValues();
 
-  // Função para exibir a imagem da assinatura
   const renderSignature = () => {
     if (data.assinatura) {
       return (
@@ -459,7 +357,6 @@ const MultiStepForm: React.FC = () => {
   // Passo atual
   const [currentStep, setCurrentStep] = useState(1);
 
-  // React Hook Form - usaremos um único form global
   const methods = useForm<FormData>({
     resolver: zodResolver(rootSchema),
     defaultValues: {
@@ -470,18 +367,16 @@ const MultiStepForm: React.FC = () => {
       mensagemFinal: "",
       assinatura: "",
     },
-    mode: "onBlur", // Valida ao sair do campo. Pode ser "onChange" ou "onSubmit"
+    mode: "onBlur",
   });
 
   const { watch, setValue, handleSubmit } = methods;
 
-  // ----------------------------------------------------------------------------
   // Auto-Save no Local Storage
-  // ----------------------------------------------------------------------------
-  const formValues = watch(); // Observa todos os valores do form
+  const formValues = watch();
   const localStorageKey = "multistepFormData";
 
-  // Carrega do local storage ao montar
+  // Carrega do localStorage ao montar
   useEffect(() => {
     const saved = localStorage.getItem(localStorageKey);
     if (saved) {
@@ -495,28 +390,18 @@ const MultiStepForm: React.FC = () => {
     }
   }, [setValue]);
 
-  // Salva no local storage a cada mudança
+  // Salva no localStorage a cada mudança
   useEffect(() => {
     localStorage.setItem(localStorageKey, JSON.stringify(formValues));
   }, [formValues]);
 
-  // ----------------------------------------------------------------------------
   // Avançar / Voltar steps
-  // ----------------------------------------------------------------------------
-  const goNext = () => {
-    setCurrentStep((prev) => prev + 1);
-  };
+  const goNext = () => setCurrentStep((prev) => prev + 1);
+  const goBack = () => setCurrentStep((prev) => prev - 1);
 
-  const goBack = () => {
-    setCurrentStep((prev) => prev - 1);
-  };
-
-  // ----------------------------------------------------------------------------
-  // Submeter no final (Step 4)
-  // ----------------------------------------------------------------------------
+  // Submeter no final
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      // Envia os dados para a API
       const response = await fetch("/api/submit-form", {
         method: "POST",
         headers: {
@@ -531,11 +416,7 @@ const MultiStepForm: React.FC = () => {
 
       // Sucesso
       console.log("Dados Finais: ", data);
-
-      // Limpa o localStorage
       localStorage.removeItem(localStorageKey);
-
-      // Exibe toast de sucesso
       toast.success("Formulário finalizado e dados enviados.");
     } catch (error) {
       console.error(error);
@@ -543,15 +424,10 @@ const MultiStepForm: React.FC = () => {
     }
   };
 
-  // ----------------------------------------------------------------------------
-  // Barra de Progresso (com labels)
-  // ----------------------------------------------------------------------------
+  // Barra de Progresso
   const totalSteps = 4;
   const progressPercent = Math.round((currentStep / totalSteps) * 100);
 
-  // ----------------------------------------------------------------------------
-  // Render
-  // ----------------------------------------------------------------------------
   return (
     <FormProvider {...methods}>
       <div className="min-h-screen flex flex-col items-center bg-gray-50 p-6">
@@ -562,10 +438,10 @@ const MultiStepForm: React.FC = () => {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          Formulário MultiStep com Validação, AutoSave, Tooltips e Toast
+          Formulário MultiStep com Validação, AutoSave (sem Tooltips)
         </motion.h1>
 
-        {/* Barra de Progresso com Labels */}
+        {/* Barra de Progresso */}
         <div className="w-full max-w-2xl mb-6">
           <div className="flex justify-between mb-2">
             <span className="text-sm text-gray-600">
