@@ -15,46 +15,102 @@ import SignatureCanvas, { SignatureCanvasRef } from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
-// Importe seus componentes de UI (named exports):
+// Seus componentes de UI (ajuste os paths conforme necessário)
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// ------------- SCHEMA ZOD -------------
+// ---------------------------------------------------------------------
+// 1) DEFINIÇÃO DO SCHEMA ZOD (Adaptando as perguntas do RDO)
 const rootSchema = z.object({
-  nomeCompleto: z
-    .string()
-    .min(3, "Seu nome deve ter ao menos 3 letras.")
-    .optional(),
-  email: z.string().email("Email inválido.").optional(),
-  checklistSeguranca: z
+  // Step 1
+  objeto: z.string().optional(),
+  nrContrato: z.string().optional(),
+  ccObra: z.string().optional(),
+  contratante: z.string().optional(),
+  responsavel: z.string().optional(),
+  data: z.string().optional(),
+
+  // Step 2
+  observacoesProjeta: z.string().optional(),
+  equipeExecucao: z
     .array(
       z.object({
-        item: z.string(),
-        status: z.boolean(),
+        funcao: z.string(), // Engenheiro, Consultor, etc.
+        qtd: z.string().optional(),
       })
     )
     .optional(),
-  observacoes: z.string().optional(),
-  mensagemFinal: z.string().optional(),
-  assinatura: z.string().min(10, "Por favor, assine o formulário.").optional(),
+
+  // Step 3
+  servicosEmExecucao: z.string().optional(),
+  equipamentos: z
+    .array(
+      z.object({
+        nome: z.string(),
+        qtd: z.string().optional(),
+      })
+    )
+    .optional(),
+  ferramentas: z
+    .array(
+      z.object({
+        nome: z.string(),
+        qtd: z.string().optional(),
+      })
+    )
+    .optional(),
+
+  // Step 4
+  ocorrenciaGeral: z.string().optional(),
+  observacoesCliente: z.string().optional(),
+
+  // Step 5
+  condMeteo: z.enum(["BOM", "CHUVOSO"]).optional(),
+  regimeTrabalho: z.enum(["HORA_NORMAL", "HORA_EXTRA"]).optional(),
+  assinaturaProjetista: z.string().optional(), // Base64
+  assinaturaContratante: z.string().optional(), // Base64
 });
 
-// ------------- DADOS INICIAIS -------------
-const initialChecklist = [
-  { item: "EPI Adequado", status: false },
-  { item: "Área Sinalizada", status: false },
-  { item: "Treinamento Atualizado", status: false },
-  { item: "Equipamentos Revisados", status: false },
-  { item: "Sistemas de Ventilação Funcionando", status: false },
-  { item: "Extintores de Incêndio Disponíveis", status: false },
-];
-
-// Tipagem do Formulário
+// ---------------------------------------------------------------------
+// 2) TIPAGEM DO FORMULÁRIO
 type FormData = z.infer<typeof rootSchema>;
 
-// ------------- STEP 1 -------------
+// 3) VALORES INICIAIS (defaultValues)
+const defaultEquipe = [
+  { funcao: "Engenheiro", qtd: "" },
+  { funcao: "Especialista", qtd: "" },
+  { funcao: "Consultor", qtd: "" },
+  { funcao: "Projetista", qtd: "" },
+  { funcao: "Cadista", qtd: "" },
+  { funcao: "Encarregado", qtd: "" },
+  { funcao: "Topógrafo", qtd: "" },
+  { funcao: "Sondador", qtd: "" },
+  { funcao: "Pedreiro", qtd: "" },
+  { funcao: "Téc. Segurança", qtd: "" },
+  { funcao: "Ajudante", qtd: "" },
+  { funcao: "Eletricista", qtd: "" },
+  { funcao: "Instalador", qtd: "" },
+  { funcao: "Auxiliar", qtd: "" },
+];
+
+const defaultEquipamentos = [
+  { nome: "Guindaste", qtd: "" },
+  { nome: "Retroescavadeira", qtd: "" },
+  { nome: "Plataforma Elevatória", qtd: "" },
+];
+
+const defaultFerramentas = [
+  { nome: "Martelete", qtd: "" },
+  { nome: "Furadeira", qtd: "" },
+  { nome: "Esmerilhadeira", qtd: "" },
+];
+
+// ---------------------------------------------------------------------
+// 4) STEPS
+
+// Step 1: Dados gerais
 const StepOne: React.FC = () => {
   const {
     register,
@@ -63,40 +119,110 @@ const StepOne: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Nome Completo */}
+      {/* Objeto */}
       <div>
-        <Label htmlFor="nomeCompleto">Nome Completo</Label>
+        <Label htmlFor="objeto">Objeto</Label>
         <Input
-          id="nomeCompleto"
-          {...register("nomeCompleto")}
-          placeholder="Seu nome"
-          className={`${
-            errors.nomeCompleto ? "border-red-500" : "border-gray-300"
-          }`}
-          aria-invalid={errors.nomeCompleto ? "true" : "false"}
+          id="objeto"
+          {...register("objeto")}
+          placeholder="Descrição do objeto (Obra)"
+          className={`${errors.objeto ? "border-red-500" : "border-gray-300"}`}
         />
-        {errors.nomeCompleto && (
+        {errors.objeto && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
-            {errors.nomeCompleto.message}
+            {errors.objeto.message}
           </div>
         )}
       </div>
 
-      {/* Email */}
+      {/* Nr Contrato/Pedido */}
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="nrContrato">Nº Contrato/Pedido</Label>
         <Input
-          id="email"
-          {...register("email")}
-          placeholder="seuemail@exemplo.com"
-          className={`${errors.email ? "border-red-500" : "border-gray-300"}`}
-          aria-invalid={errors.email ? "true" : "false"}
+          id="nrContrato"
+          {...register("nrContrato")}
+          placeholder="Ex: 12345"
+          className={`${
+            errors.nrContrato ? "border-red-500" : "border-gray-300"
+          }`}
         />
-        {errors.email && (
+        {errors.nrContrato && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
-            {errors.email.message}
+            {errors.nrContrato.message}
+          </div>
+        )}
+      </div>
+
+      {/* C.C / Obra */}
+      <div>
+        <Label htmlFor="ccObra">C.C / Obra</Label>
+        <Input
+          id="ccObra"
+          {...register("ccObra")}
+          placeholder="Centro de Custo / Obra"
+          className={`${errors.ccObra ? "border-red-500" : "border-gray-300"}`}
+        />
+        {errors.ccObra && (
+          <div className="flex items-center text-red-500 text-sm mt-1">
+            <FaExclamationCircle className="mr-1" />
+            {errors.ccObra.message}
+          </div>
+        )}
+      </div>
+
+      {/* Contratante */}
+      <div>
+        <Label htmlFor="contratante">Contratante</Label>
+        <Input
+          id="contratante"
+          {...register("contratante")}
+          placeholder="Empresa Contratante"
+          className={`${
+            errors.contratante ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        {errors.contratante && (
+          <div className="flex items-center text-red-500 text-sm mt-1">
+            <FaExclamationCircle className="mr-1" />
+            {errors.contratante.message}
+          </div>
+        )}
+      </div>
+
+      {/* Responsável */}
+      <div>
+        <Label htmlFor="responsavel">Responsável</Label>
+        <Input
+          id="responsavel"
+          {...register("responsavel")}
+          placeholder="Nome do responsável"
+          className={`${
+            errors.responsavel ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        {errors.responsavel && (
+          <div className="flex items-center text-red-500 text-sm mt-1">
+            <FaExclamationCircle className="mr-1" />
+            {errors.responsavel.message}
+          </div>
+        )}
+      </div>
+
+      {/* Data */}
+      <div>
+        <Label htmlFor="data">Data</Label>
+        <Input
+          id="data"
+          type="date"
+          {...register("data")}
+          className={`${errors.data ? "border-red-500" : "border-gray-300"}`}
+        />
+        {errors.data && (
+          <div className="flex items-center text-red-500 text-sm mt-1">
+            <FaExclamationCircle className="mr-1" />
+            {errors.data.message}
           </div>
         )}
       </div>
@@ -104,258 +230,453 @@ const StepOne: React.FC = () => {
   );
 };
 
-// ------------- STEP 2 -------------
+// Step 2: Observações Projeta + Equipe
 const StepTwo: React.FC = () => {
   const {
+    register,
+    formState: { errors },
     watch,
     setValue,
-    formState: { errors },
-    register,
   } = useFormContext<FormData>();
 
-  const checklist = watch("checklistSeguranca");
+  // Observações Projeta
+  const obsProjeta = watch("observacoesProjeta");
 
-  const toggleItem = (index: number) => {
-    const newList = [...(checklist || [])];
-    newList[index].status = !newList[index].status;
-    setValue("checklistSeguranca", newList, { shouldDirty: true });
+  // Equipe Execução
+  const equipeExecucao = watch("equipeExecucao");
+
+  // Função para atualizar a qtd da equipe
+  const handleChangeQtd = (index: number, newQtd: string) => {
+    if (!equipeExecucao) return;
+    const updated = [...equipeExecucao];
+    updated[index].qtd = newQtd;
+    setValue("equipeExecucao", updated, { shouldDirty: true });
   };
 
   return (
     <div className="space-y-4">
-      {/* Checklist de Segurança */}
+      {/* Observações Projeta */}
       <div>
-        <Label className="font-semibold text-lg">Checklist de Segurança</Label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-4 rounded">
-          {checklist?.map((item, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={item.status}
-                onChange={() => toggleItem(index)}
-              />
-              <Label className="cursor-pointer">{item.item}</Label>
-            </div>
-          ))}
-        </div>
-        {errors.checklistSeguranca && (
+        <Label htmlFor="observacoesProjeta">Observações Projeta</Label>
+        <Textarea
+          id="observacoesProjeta"
+          placeholder="Informe observações do projeto..."
+          {...register("observacoesProjeta")}
+          className={`${
+            errors.observacoesProjeta ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        {errors.observacoesProjeta && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
-            {/* Caso queira mensagem própria, use {errors.checklistSeguranca.message} */}
-            Há algum problema no Checklist de Segurança.
+            {errors.observacoesProjeta.message}
           </div>
         )}
       </div>
 
-      {/* Observações */}
+      {/* Equipe de Execução */}
       <div>
-        <Label htmlFor="observacoes">Observações</Label>
-        <Textarea
-          id="observacoes"
-          placeholder="Observações gerais..."
-          {...register("observacoes")}
-          className={`${
-            errors.observacoes ? "border-red-500" : "border-gray-300"
-          }`}
-          aria-invalid={errors.observacoes ? "true" : "false"}
-        />
-        {errors.observacoes && (
-          <div className="flex items-center text-red-500 text-sm mt-1">
-            <FaExclamationCircle className="mr-1" />
-            {errors.observacoes.message}
+        <Label className="font-semibold text-lg">Equipe de Execução</Label>
+        {equipeExecucao?.map((item, index) => (
+          <div key={index} className="flex items-center space-x-2 py-1">
+            <Label className="w-32">{item.funcao}:</Label>
+            <Input
+              type="number"
+              placeholder="Qtd"
+              value={item.qtd}
+              onChange={(e) => handleChangeQtd(index, e.target.value)}
+              className="w-24"
+            />
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
 };
 
-// ------------- STEP 3 (Assinatura) -------------
+// Step 3: Serviços, Equipamentos, Ferramentas
 const StepThree: React.FC = () => {
   const {
     register,
     formState: { errors },
-    setValue,
     watch,
+    setValue,
   } = useFormContext<FormData>();
 
-  // Agora, usando o tipo `SignatureCanvasRef` para o ref:
-  const sigCanvasRef = useRef<SignatureCanvasRef | null>(null);
+  const servicosEmExecucao = watch("servicosEmExecucao");
 
-  const saveSignature = () => {
-    if (sigCanvasRef.current) {
-      const signature = sigCanvasRef.current
-        .getTrimmedCanvas()
-        .toDataURL("image/png");
-      setValue("assinatura", signature, { shouldValidate: true });
-    }
+  // Equipamentos
+  const equipamentos = watch("equipamentos");
+  const updateEquip = (index: number, qtd: string) => {
+    if (!equipamentos) return;
+    const updated = [...equipamentos];
+    updated[index].qtd = qtd;
+    setValue("equipamentos", updated, { shouldDirty: true });
   };
 
-  const clearSignature = () => {
-    if (sigCanvasRef.current) {
-      sigCanvasRef.current.clear();
-      setValue("assinatura", "", { shouldValidate: true });
-    }
+  // Ferramentas
+  const ferramentas = watch("ferramentas");
+  const updateFerrar = (index: number, qtd: string) => {
+    if (!ferramentas) return;
+    const updated = [...ferramentas];
+    updated[index].qtd = qtd;
+    setValue("ferramentas", updated, { shouldDirty: true });
   };
-
-  const assinatura = watch("assinatura");
 
   return (
     <div className="space-y-4">
-      {/* Mensagem Final */}
+      {/* Serviços em Execução */}
       <div>
-        <Label htmlFor="mensagemFinal" className="font-semibold text-lg">
-          Mensagem Final / Considerações
-        </Label>
+        <Label htmlFor="servicosEmExecucao">Serviços em Execução</Label>
         <Textarea
-          id="mensagemFinal"
-          placeholder="Se quiser deixar uma mensagem final..."
-          {...register("mensagemFinal")}
+          id="servicosEmExecucao"
+          placeholder="Descreva os serviços em execução"
+          {...register("servicosEmExecucao")}
           className={`${
-            errors.mensagemFinal ? "border-red-500" : "border-gray-300"
+            errors.servicosEmExecucao ? "border-red-500" : "border-gray-300"
           }`}
-          aria-invalid={errors.mensagemFinal ? "true" : "false"}
         />
-        {errors.mensagemFinal && (
+        {errors.servicosEmExecucao && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
-            {errors.mensagemFinal.message}
+            {errors.servicosEmExecucao.message}
           </div>
         )}
       </div>
 
-      {/* Assinatura */}
+      {/* Equipamentos */}
       <div>
-        <Label htmlFor="assinatura" className="font-semibold text-lg">
-          Assinatura
+        <Label className="font-semibold text-lg">Equipamentos</Label>
+        {equipamentos?.map((eq, index) => (
+          <div key={index} className="flex items-center space-x-2 py-1">
+            <Label className="w-48">{eq.nome}:</Label>
+            <Input
+              type="number"
+              placeholder="Qtd"
+              value={eq.qtd}
+              onChange={(e) => updateEquip(index, e.target.value)}
+              className="w-24"
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Ferramentas / Acessórios */}
+      <div>
+        <Label className="font-semibold text-lg">Ferramentas / Acessórios</Label>
+        {ferramentas?.map((ferr, index) => (
+          <div key={index} className="flex items-center space-x-2 py-1">
+            <Label className="w-48">{ferr.nome}:</Label>
+            <Input
+              type="number"
+              placeholder="Qtd"
+              value={ferr.qtd}
+              onChange={(e) => updateFerrar(index, e.target.value)}
+              className="w-24"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Step 4: Ocorrências, Observações do Cliente
+const StepFour: React.FC = () => {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<FormData>();
+
+  return (
+    <div className="space-y-4">
+      {/* Ocorrência Geral */}
+      <div>
+        <Label htmlFor="ocorrenciaGeral">Ocorrência Geral</Label>
+        <Textarea
+          id="ocorrenciaGeral"
+          placeholder="Descreva ocorrências gerais"
+          {...register("ocorrenciaGeral")}
+          className={`${
+            errors.ocorrenciaGeral ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        {errors.ocorrenciaGeral && (
+          <div className="flex items-center text-red-500 text-sm mt-1">
+            <FaExclamationCircle className="mr-1" />
+            {errors.ocorrenciaGeral.message}
+          </div>
+        )}
+      </div>
+
+      {/* Observações do Cliente */}
+      <div>
+        <Label htmlFor="observacoesCliente">Observações do Cliente</Label>
+        <Textarea
+          id="observacoesCliente"
+          placeholder="Registre observações do cliente"
+          {...register("observacoesCliente")}
+          className={`${
+            errors.observacoesCliente ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        {errors.observacoesCliente && (
+          <div className="flex items-center text-red-500 text-sm mt-1">
+            <FaExclamationCircle className="mr-1" />
+            {errors.observacoesCliente.message}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Step 5: Condições, Regime, Assinaturas
+const StepFive: React.FC = () => {
+  const {
+    register,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useFormContext<FormData>();
+
+  // Ref p/ assinatura projetista
+  const projCanvasRef = useRef<SignatureCanvasRef | null>(null);
+  // Ref p/ assinatura contratante
+  const contrCanvasRef = useRef<SignatureCanvasRef | null>(null);
+
+  const condMeteo = watch("condMeteo");
+  const regimeTrabalho = watch("regimeTrabalho");
+  const assinaturaProjetista = watch("assinaturaProjetista");
+  const assinaturaContratante = watch("assinaturaContratante");
+
+  // Funções para salvar/limpar
+  const saveProjAssinatura = () => {
+    if (projCanvasRef.current) {
+      const signature = projCanvasRef.current
+        .getTrimmedCanvas()
+        .toDataURL("image/png");
+      setValue("assinaturaProjetista", signature, { shouldValidate: true });
+    }
+  };
+
+  const clearProjAssinatura = () => {
+    if (projCanvasRef.current) {
+      projCanvasRef.current.clear();
+      setValue("assinaturaProjetista", "", { shouldValidate: true });
+    }
+  };
+
+  const saveContrAssinatura = () => {
+    if (contrCanvasRef.current) {
+      const signature = contrCanvasRef.current
+        .getTrimmedCanvas()
+        .toDataURL("image/png");
+      setValue("assinaturaContratante", signature, { shouldValidate: true });
+    }
+  };
+
+  const clearContrAssinatura = () => {
+    if (contrCanvasRef.current) {
+      contrCanvasRef.current.clear();
+      setValue("assinaturaContratante", "", { shouldValidate: true });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Condições Meteorológicas */}
+      <div>
+        <Label className="font-semibold text-lg">
+          Condições Meteorológicas
+        </Label>
+        <div className="space-x-4">
+          <label>
+            <input
+              type="radio"
+              value="BOM"
+              {...register("condMeteo")}
+              checked={condMeteo === "BOM"}
+            />
+            <span className="ml-1">Bom</span>
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="CHUVOSO"
+              {...register("condMeteo")}
+              checked={condMeteo === "CHUVOSO"}
+            />
+            <span className="ml-1">Chuvoso</span>
+          </label>
+        </div>
+        {errors.condMeteo && (
+          <div className="flex items-center text-red-500 text-sm mt-1">
+            <FaExclamationCircle className="mr-1" />
+            {errors.condMeteo.message}
+          </div>
+        )}
+      </div>
+
+      {/* Regime de Trabalho */}
+      <div>
+        <Label className="font-semibold text-lg">Regime de Trabalho</Label>
+        <div className="space-x-4">
+          <label>
+            <input
+              type="radio"
+              value="HORA_NORMAL"
+              {...register("regimeTrabalho")}
+              checked={regimeTrabalho === "HORA_NORMAL"}
+            />
+            <span className="ml-1">Hora Normal</span>
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="HORA_EXTRA"
+              {...register("regimeTrabalho")}
+              checked={regimeTrabalho === "HORA_EXTRA"}
+            />
+            <span className="ml-1">Hora Extra</span>
+          </label>
+        </div>
+        {errors.regimeTrabalho && (
+          <div className="flex items-center text-red-500 text-sm mt-1">
+            <FaExclamationCircle className="mr-1" />
+            {errors.regimeTrabalho.message}
+          </div>
+        )}
+      </div>
+
+      {/* Assinatura Projetista */}
+      <div>
+        <Label className="font-semibold text-lg">
+          Assinatura (Projetista)
         </Label>
         <div className="border p-2 rounded-md">
           <SignatureCanvas
             penColor="black"
             canvasProps={{
-              width: 500,
+              width: 400,
               height: 200,
               className: "sigCanvas",
             }}
-            ref={sigCanvasRef}
-            onEnd={saveSignature}
+            ref={projCanvasRef}
+            onEnd={saveProjAssinatura}
           />
         </div>
         <div className="flex space-x-2 mt-2">
-          <Button type="button" variant="outline" onClick={clearSignature}>
-            Limpar Assinatura
+          <Button
+            type="button"
+            variant="outline"
+            onClick={clearProjAssinatura}
+          >
+            Limpar
           </Button>
-          <Button type="button" variant="default" onClick={saveSignature}>
-            Salvar Assinatura
+          <Button
+            type="button"
+            variant="default"
+            onClick={saveProjAssinatura}
+          >
+            Salvar
           </Button>
         </div>
-        {errors.assinatura && (
-          <div className="flex items-center text-red-500 text-sm mt-1">
-            <FaExclamationCircle className="mr-1" />
-            {errors.assinatura.message}
-          </div>
-        )}
-        {/* Campo oculto para armazenar a assinatura em base64 */}
-        <input type="hidden" {...register("assinatura")} value={assinatura} />
-      </div>
-    </div>
-  );
-};
-
-// ------------- STEP 4 (Revisão) -------------
-const StepFour: React.FC = () => {
-  const { getValues } = useFormContext<FormData>();
-  const data = getValues();
-
-  const renderSignature = () => {
-    if (data.assinatura) {
-      return (
-        <Image
-          src={data.assinatura}
-          alt="Assinatura"
-          width={256}
-          height={100}
-          className="w-64 h-auto border p-2 object-contain"
+        {/* Campo oculto p/ base64 */}
+        <input
+          type="hidden"
+          {...register("assinaturaProjetista")}
+          value={assinaturaProjetista}
         />
-      );
-    }
-    return <p>Nenhuma assinatura fornecida.</p>;
-  };
-
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Revisão dos Dados</h2>
-      <div className="space-y-2">
-        {data.nomeCompleto && (
-          <p>
-            <strong>Nome Completo:</strong> {data.nomeCompleto}
-          </p>
-        )}
-        {data.email && (
-          <p>
-            <strong>Email:</strong> {data.email}
-          </p>
-        )}
-        {data.checklistSeguranca && data.checklistSeguranca.length > 0 && (
-          <div>
-            <strong>Checklist de Segurança:</strong>
-            <ul className="list-disc list-inside">
-              {data.checklistSeguranca
-                .filter((item) => item.status)
-                .map((item, index) => (
-                  <li key={index}>{item.item}</li>
-                ))}
-            </ul>
-          </div>
-        )}
-        {data.observacoes && (
-          <p>
-            <strong>Observações:</strong> {data.observacoes}
-          </p>
-        )}
-        {data.mensagemFinal && (
-          <p>
-            <strong>Mensagem Final:</strong> {data.mensagemFinal}
-          </p>
-        )}
-        <div>
-          <strong>Assinatura:</strong>
-          <div className="mt-2">{renderSignature()}</div>
-        </div>
       </div>
-      <p className="text-gray-600">
-        Revise todos os dados acima. Se precisar fazer alguma alteração, clique
-        em &quot;Voltar&quot;.
-      </p>
+
+      {/* Assinatura Contratante */}
+      <div>
+        <Label className="font-semibold text-lg">
+          Assinatura (Contratante)
+        </Label>
+        <div className="border p-2 rounded-md">
+          <SignatureCanvas
+            penColor="black"
+            canvasProps={{
+              width: 400,
+              height: 200,
+              className: "sigCanvas",
+            }}
+            ref={contrCanvasRef}
+            onEnd={saveContrAssinatura}
+          />
+        </div>
+        <div className="flex space-x-2 mt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={clearContrAssinatura}
+          >
+            Limpar
+          </Button>
+          <Button type="button" variant="default" onClick={saveContrAssinatura}>
+            Salvar
+          </Button>
+        </div>
+        <input
+          type="hidden"
+          {...register("assinaturaContratante")}
+          value={assinaturaContratante}
+        />
+      </div>
     </div>
   );
 };
 
-// ------------- COMPONENTE PRINCIPAL -------------
+// ---------------------------------------------------------------------
+// 9) COMPONENTE PRINCIPAL MULTISTEP FORM
 export default function MultiStepForm() {
-  // React Hook Form + Zod
   const methods = useForm<FormData>({
     resolver: zodResolver(rootSchema),
     defaultValues: {
-      nomeCompleto: "",
-      email: "",
-      checklistSeguranca: initialChecklist,
-      observacoes: "",
-      mensagemFinal: "",
-      assinatura: "",
+      // Step 1
+      objeto: "",
+      nrContrato: "",
+      ccObra: "",
+      contratante: "",
+      responsavel: "",
+      data: "",
+
+      // Step 2
+      observacoesProjeta: "",
+      equipeExecucao: defaultEquipe, // array com { funcao, qtd }
+
+      // Step 3
+      servicosEmExecucao: "",
+      equipamentos: defaultEquipamentos,
+      ferramentas: defaultFerramentas,
+
+      // Step 4
+      ocorrenciaGeral: "",
+      observacoesCliente: "",
+
+      // Step 5
+      condMeteo: undefined,
+      regimeTrabalho: undefined,
+      assinaturaProjetista: "",
+      assinaturaContratante: "",
     },
     mode: "onBlur",
   });
 
-  const [currentStep, setCurrentStep] = useState(1);
   const { watch, setValue, handleSubmit } = methods;
+  const [currentStep, setCurrentStep] = useState(1);
 
-  // Armazenamento no localStorage
+  // Total de steps -> 5
+  const totalSteps = 5;
+
+  // Para salvar no localStorage, se desejar
   const formValues = watch();
-  const localStorageKey = "multistepFormData";
+  const localStorageKey = "multistepFormDataRDO";
 
   useEffect(() => {
-    // Carrega dados do localStorage, se existirem
+    // Carrega do localStorage
     const saved = localStorage.getItem(localStorageKey);
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -369,18 +690,17 @@ export default function MultiStepForm() {
   }, []);
 
   useEffect(() => {
-    // Salva sempre que `formValues` mudar
     localStorage.setItem(localStorageKey, JSON.stringify(formValues));
   }, [formValues]);
 
-  // Avançar / Voltar steps
+  // Navegação
   const goNext = () => setCurrentStep((prev) => prev + 1);
   const goBack = () => setCurrentStep((prev) => prev - 1);
 
-  // Submeter no final
+  // Submit final
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      const response = await fetch("/api/submit-form", {
+      const response = await fetch("/api/submit-rdo", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -388,20 +708,22 @@ export default function MultiStepForm() {
         body: JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error("Erro ao enviar o formulário.");
+        throw new Error("Erro ao enviar o RDO.");
       }
-      console.log("Dados Finais: ", data);
+      // Se sucesso
+      console.log("Dados Finais RDO:", data);
       localStorage.removeItem(localStorageKey);
-      toast.success("Formulário finalizado e dados enviados.");
+      toast.success("RDO finalizado e dados enviados.");
     } catch (error) {
       console.error(error);
-      toast.error("Ocorreu um erro ao enviar o formulário. Tente novamente.");
+      toast.error("Ocorreu um erro ao enviar o RDO. Tente novamente.");
     }
   };
 
-  const totalSteps = 4;
+  // Progresso
   const progressPercent = Math.round((currentStep / totalSteps) * 100);
 
+  // Render
   return (
     <FormProvider {...methods}>
       <div className="min-h-screen flex flex-col items-center bg-gray-50 p-6">
@@ -412,11 +734,11 @@ export default function MultiStepForm() {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          Formulário MultiStep com Assinatura
+          RDO - Relatório Diário de Obra
         </motion.h1>
 
         {/* Barra de Progresso */}
-        <div className="w-full max-w-2xl mb-6">
+        <div className="w-full max-w-3xl mb-6">
           <div className="flex justify-between mb-2">
             <span className="text-sm text-gray-600">
               Etapa {currentStep} de {totalSteps}
@@ -433,10 +755,9 @@ export default function MultiStepForm() {
           </div>
         </div>
 
-        {/* Form */}
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="w-full max-w-2xl bg-white p-4 md:p-8 rounded-lg shadow space-y-6"
+          className="w-full max-w-3xl bg-white p-4 md:p-8 rounded-lg shadow space-y-6"
         >
           <AnimatePresence mode="wait">
             {currentStep === 1 && (
@@ -483,9 +804,20 @@ export default function MultiStepForm() {
                 <StepFour />
               </motion.div>
             )}
+            {currentStep === 5 && (
+              <motion.div
+                key="step5"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 50 }}
+                transition={{ duration: 0.3 }}
+              >
+                <StepFive />
+              </motion.div>
+            )}
           </AnimatePresence>
 
-          {/* Botões de Navegação */}
+          {/* Botões de navegação */}
           <div className="flex justify-between mt-4">
             {currentStep > 1 && (
               <Button type="button" variant="outline" onClick={goBack}>
