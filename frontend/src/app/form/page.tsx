@@ -2,12 +2,11 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useForm,
   FormProvider,
-  useFormContext,
   SubmitHandler,
 } from "react-hook-form";
 import { z } from "zod";
@@ -16,14 +15,11 @@ import { toast, Toaster } from "react-hot-toast";
 import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
-import TooltipProviderCustom from "@/components/TooltipComponents/TooltipProviderCustom";
-import TooltipCustom from "@/components/TooltipComponents/TooltipCustom";
-import TooltipTriggerCustom from "@/components/TooltipComponents/TooltipTriggerCustom";
-import TooltipContentCustom from "@/components/TooltipComponents/TooltipContentCustom";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import Label from "@/components/ui/Label";
-import Textarea from "@/components/ui/Textarea";
+import Button from "@/components/ui/button";
+import Input from "@/components/ui/input";
+import Label from "@/components/ui/label";
+import Textarea from "@/components/ui/textarea";
+
 
 
 
