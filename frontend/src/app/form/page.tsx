@@ -15,15 +15,15 @@ import SignatureCanvas from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
-// Importando com named exports (exemplo de como importar componentes de UI)
+// Importe aqui seus componentes de UI. 
+// Certifique-se de que "Button", "Input", "Label" e "Textarea" 
+// são exported *named* nos arquivos e importados assim:
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 // ------------- Schema Zod -------------
-// Removemos o .or(z.literal("")) pois `optional()` já permite string vazia ou undefined.
-// Caso queira garantir um campo não vazio, retire `optional()` e ajuste conforme necessidade.
 const rootSchema = z.object({
   nomeCompleto: z
     .string()
@@ -40,13 +40,10 @@ const rootSchema = z.object({
     .optional(),
   observacoes: z.string().optional(),
   mensagemFinal: z.string().optional(),
-  assinatura: z
-    .string()
-    .min(10, "Por favor, assine o formulário.")
-    .optional(),
+  assinatura: z.string().min(10, "Por favor, assine o formulário.").optional(),
 });
 
-// Checklist inicial
+// ------------- Dados iniciais -------------
 const initialChecklist = [
   { item: "EPI Adequado", status: false },
   { item: "Área Sinalizada", status: false },
@@ -61,6 +58,7 @@ type FormData = z.infer<typeof rootSchema>;
 
 // ------------- Step 1 -------------
 const StepOne: React.FC = () => {
+  // Desestruture register e errors do context
   const {
     register,
     formState: { errors },
@@ -115,7 +113,9 @@ const StepTwo: React.FC = () => {
     watch,
     setValue,
     formState: { errors },
+    register,
   } = useFormContext<FormData>();
+
   const checklist = watch("checklistSeguranca");
 
   const toggleItem = (index: number) => {
@@ -144,9 +144,7 @@ const StepTwo: React.FC = () => {
         {errors.checklistSeguranca && (
           <div className="flex items-center text-red-500 text-sm mt-1">
             <FaExclamationCircle className="mr-1" />
-            {/* Caso queira mensagem própria, pode customizar:
-                {errors.checklistSeguranca.message}
-            */}
+            {/* Caso queira mensagem própria, use: {errors.checklistSeguranca.message} */}
             Há algum problema no Checklist de Segurança.
           </div>
         )}
@@ -337,9 +335,7 @@ const StepFour: React.FC = () => {
 
 // ------------- Componente Principal -------------
 export default function MultiStepForm() {
-  const [currentStep, setCurrentStep] = useState(1);
-
-  // React Hook Form global
+  // Configuração do React Hook Form com Zod
   const methods = useForm<FormData>({
     resolver: zodResolver(rootSchema),
     defaultValues: {
@@ -353,18 +349,18 @@ export default function MultiStepForm() {
     mode: "onBlur",
   });
 
+  const [currentStep, setCurrentStep] = useState(1);
   const { watch, setValue, handleSubmit } = methods;
 
-  // Auto-Save no Local Storage
+  // Armazenamento no localStorage
   const formValues = watch();
   const localStorageKey = "multistepFormData";
 
   useEffect(() => {
-    // Carrega dados do localStorage, se existirem
+    // Carrega dados do localStorage
     const saved = localStorage.getItem(localStorageKey);
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Atualiza cada campo do formulário com o valor salvo
       Object.keys(parsed).forEach((field) => {
         setValue(field as keyof FormData, parsed[field], {
           shouldValidate: false,
@@ -375,15 +371,14 @@ export default function MultiStepForm() {
   }, []);
 
   useEffect(() => {
-    // Salva sempre que `formValues` mudar
     localStorage.setItem(localStorageKey, JSON.stringify(formValues));
   }, [formValues]);
 
-  // Avançar / Voltar steps
+  // Avançar e Voltar steps
   const goNext = () => setCurrentStep((prev) => prev + 1);
   const goBack = () => setCurrentStep((prev) => prev - 1);
 
-  // Submeter no final
+  // Envio final
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
       const response = await fetch("/api/submit-form", {
@@ -397,7 +392,7 @@ export default function MultiStepForm() {
         throw new Error("Erro ao enviar o formulário.");
       }
       console.log("Dados Finais: ", data);
-      localStorage.removeItem(localStorageKey); // Limpa localStorage
+      localStorage.removeItem(localStorageKey);
       toast.success("Formulário finalizado e dados enviados.");
     } catch (error) {
       console.error(error);
