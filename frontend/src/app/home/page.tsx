@@ -161,8 +161,7 @@ const HomePage: React.FC = () => {
         <p>
           &copy; 2024 Projeta. <br />
           Todos os direitos reservados. <br />
-          Projetado e Desenvolvido por NITEP - Núcleo de Inovação e Tecnologia
-          Projeta
+          Projetado e Desenvolvido por Victor Hugo - Nitep - Núcleo de Inovação e Tecnologia Projeta
         </p>
       </footer>
 

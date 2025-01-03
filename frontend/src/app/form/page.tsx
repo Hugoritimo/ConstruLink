@@ -15,6 +15,10 @@ import SignatureCanvas, { SignatureCanvasRef } from "react-signature-canvas";
 import { FaExclamationCircle } from "react-icons/fa";
 import Image from "next/image";
 
+// ==== IMPORTANTE: para ícone dinâmico ====
+import * as FaIcons from "react-icons/fa";
+import { IconType } from "react-icons";
+
 // Seus componentes de UI (ajuste os paths conforme necessário)
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -143,9 +147,7 @@ const StepOne: React.FC = () => {
           id="nrContrato"
           {...register("nrContrato")}
           placeholder="Ex: 12345"
-          className={`${
-            errors.nrContrato ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`${errors.nrContrato ? "border-red-500" : "border-gray-300"}`}
         />
         {errors.nrContrato && (
           <div className="flex items-center text-red-500 text-sm mt-1">
@@ -239,9 +241,6 @@ const StepTwo: React.FC = () => {
     setValue,
   } = useFormContext<FormData>();
 
-  // Observações Projeta
-  const obsProjeta = watch("observacoesProjeta");
-
   // Equipe Execução
   const equipeExecucao = watch("equipeExecucao");
 
@@ -302,8 +301,6 @@ const StepThree: React.FC = () => {
     watch,
     setValue,
   } = useFormContext<FormData>();
-
-  const servicosEmExecucao = watch("servicosEmExecucao");
 
   // Equipamentos
   const equipamentos = watch("equipamentos");
@@ -615,7 +612,11 @@ const StepFive: React.FC = () => {
           >
             Limpar
           </Button>
-          <Button type="button" variant="default" onClick={saveContrAssinatura}>
+          <Button
+            type="button"
+            variant="default"
+            onClick={saveContrAssinatura}
+          >
             Salvar
           </Button>
         </div>
@@ -632,6 +633,11 @@ const StepFive: React.FC = () => {
 // ---------------------------------------------------------------------
 // 9) COMPONENTE PRINCIPAL MULTISTEP FORM
 export default function MultiStepForm() {
+  // ==== AQUI VAMOS LER O ÍCONE SELECIONADO (OPCIONAL) ====
+  const [IconComponent, setIconComponent] = useState<IconType | null>(null);
+  const [companyName, setCompanyName] = useState("");
+
+  // React Hook Form
   const methods = useForm<FormData>({
     resolver: zodResolver(rootSchema),
     defaultValues: {
@@ -645,7 +651,7 @@ export default function MultiStepForm() {
 
       // Step 2
       observacoesProjeta: "",
-      equipeExecucao: defaultEquipe, // array com { funcao, qtd }
+      equipeExecucao: defaultEquipe,
 
       // Step 3
       servicosEmExecucao: "",
@@ -675,8 +681,9 @@ export default function MultiStepForm() {
   const formValues = watch();
   const localStorageKey = "multistepFormDataRDO";
 
+  // --- Lendo localStorage para restaurar form + icone ---
   useEffect(() => {
-    // Carrega do localStorage
+    // 1. Restaura form se houver
     const saved = localStorage.getItem(localStorageKey);
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -685,6 +692,20 @@ export default function MultiStepForm() {
           shouldValidate: false,
         });
       });
+    }
+
+    // 2. Restaura empresa + icone selecionado
+    const selectedCompanyStr = localStorage.getItem("selectedCompany");
+    if (selectedCompanyStr) {
+      const parsedCompany = JSON.parse(selectedCompanyStr);
+      if (parsedCompany?.company) {
+        setCompanyName(parsedCompany.company);
+      }
+      // Ex: { company: "vale", icon: "FaIndustry" }
+      const iconName = parsedCompany?.icon;
+      if (iconName && (FaIcons as any)[iconName]) {
+        setIconComponent(() => (FaIcons as any)[iconName]);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -728,6 +749,16 @@ export default function MultiStepForm() {
     <FormProvider {...methods}>
       <div className="min-h-screen flex flex-col items-center bg-gray-50 p-6">
         <Toaster position="top-right" />
+
+        {/* Se tiver ícone, mostramos */}
+        {IconComponent && (
+          <IconComponent size={64} className="text-[#af1b1b] mb-2" />
+        )}
+        {companyName && (
+          <h2 className="text-xl font-bold mb-4 text-[#af1b1b] uppercase">
+            {companyName}
+          </h2>
+        )}
 
         <motion.h1
           className="text-2xl md:text-3xl font-extrabold text-[#af1b1b] mb-6"
