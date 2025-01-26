@@ -13,11 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 const defaultUsers = [
-  { username: "befranio.junior", password: "!Projeta4359" },
-  { username: "lucas.costa", password: "!Projeta4350" },
-  { username: "carlos.victor", password: "!Projeta4359" },
-  { username: "Admin", password: "teste" },
-  { username: "victor.sousa", password: "!Projeta4359" },
+  { username: "victor.sousa", password: "teste123" },
 ];
 
 
