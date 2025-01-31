@@ -1,0 +1,1 @@
+{"version":3,"file":"sharepoint.module.js","sourceRoot":"","sources":["../../src/sharepoint/sharepoint.module.ts"],"names":[],"mappings":";;;;;;;;;AACA,2CAAwC;AACxC,6DAAyD;AACzD,mEAA+D;AAMxD,IAAM,gBAAgB,GAAtB,MAAM,gBAAgB;CAAG,CAAA;AAAnB,4CAAgB;2BAAhB,gBAAgB;IAJ5B,IAAA,eAAM,EAAC;QACN,WAAW,EAAE,CAAC,4CAAoB,CAAC;QACnC,SAAS,EAAE,CAAC,sCAAiB,CAAC;KAC/B,CAAC;GACW,gBAAgB,CAAG"}
